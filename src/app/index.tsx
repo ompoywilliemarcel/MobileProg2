@@ -29,7 +29,7 @@ export default function HomeScreen() {
           keyboardShouldPersistTaps="handled"
         >
           <View style={styles.headerRow}>
-            <Text style={styles.brand}>LunaCart</Text>
+            <Text style={styles.brand}>OnlineShop</Text>
             <TouchableOpacity style={styles.helpButton}>
               <Text style={styles.helpText}>Loginssss</Text>
             </TouchableOpacity>
