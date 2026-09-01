@@ -31,7 +31,7 @@ export default function HomeScreen() {
           <View style={styles.headerRow}>
             <Text style={styles.brand}>LunaCart</Text>
             <TouchableOpacity style={styles.helpButton}>
-              <Text style={styles.helpText}>Login</Text>
+              <Text style={styles.helpText}>Loginssss</Text>
             </TouchableOpacity>
           </View>
 
