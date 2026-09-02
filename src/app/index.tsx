@@ -31,7 +31,7 @@ export default function HomeScreen() {
           <View style={styles.headerRow}>
             <Text style={styles.brand}>OnlineShop</Text>
             <TouchableOpacity style={styles.helpButton}>
-              <Text style={styles.helpText}>Loginssss</Text>
+              <Text style={styles.helpText}>Login</Text>
             </TouchableOpacity>
           </View>
 
@@ -69,7 +69,7 @@ export default function HomeScreen() {
             <View style={styles.passwordWrap}>
               <TextInput
                 style={[styles.input, styles.passwordInput]}
-                placeholder="Create a password"
+                placeholder="   Create a password"
                 placeholderTextColor="#8B8CA7"
                 value={password}
                 onChangeText={setPassword}
@@ -96,7 +96,7 @@ export default function HomeScreen() {
             <View style={styles.rowBetween}>
               <TouchableOpacity style={styles.rememberWrap}>
                 <View style={styles.checkbox} />
-                <Text style={styles.rememberText}>I agree to terms</Text>
+                <Text style={styles.rememberText}>I agree to <Text style={styles.terms}>Terms & Conditions</Text></Text>
               </TouchableOpacity>
             </View>
 
@@ -111,7 +111,7 @@ export default function HomeScreen() {
                 <Text style={styles.socialText}>G</Text>
               </TouchableOpacity>
               <TouchableOpacity style={styles.socialButton}>
-                <Text style={styles.socialText}></Text>
+                <Text style={styles.socialText}>f</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -128,7 +128,7 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#f4f1ff',
+    backgroundColor: '#acd3f2',
   },
   container: {
     flex: 1,
@@ -136,7 +136,7 @@ const styles = StyleSheet.create({
   scrollContent: {
     flexGrow: 1,
     paddingHorizontal: 24,
-    paddingTop: 16,
+    paddingTop: 12,
     paddingBottom: 32,
   },
   headerRow: {
@@ -147,23 +147,26 @@ const styles = StyleSheet.create({
   },
   brand: {
     fontSize: 28,
-    fontWeight: '800',
-    color: '#1D1B2A',
-    letterSpacing: -0.5,
+    fontWeight: '700',
+    color: '#0F172A',
+    letterSpacing: -0.8,
+    fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif"
   },
   helpButton: {
     paddingHorizontal: 12,
     paddingVertical: 8,
     borderRadius: 999,
-    backgroundColor: '#ede7ff',
+    backgroundColor: '#E0F2FE',
+    borderWidth: 1,
+    borderColor: '#BAE6FD',
   },
   helpText: {
-    color: '#5B4BDB',
+    color: '#0369A1',
     fontSize: 12,
-    fontWeight: '700',
+    fontWeight: '600',
   },
   heroCard: {
-    backgroundColor: '#1E1B39',
+    backgroundColor: '#0F172A',
     borderRadius: 28,
     padding: 24,
     marginBottom: 22,
@@ -172,7 +175,7 @@ const styles = StyleSheet.create({
   },
   badge: {
     alignSelf: 'flex-start',
-    backgroundColor: '#A78BFA',
+    backgroundColor: '#0EA5E9',
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 999,
@@ -180,55 +183,60 @@ const styles = StyleSheet.create({
   },
   badgeText: {
     color: '#fff',
-    fontWeight: '700',
+    fontWeight: '600',
     fontSize: 11,
+    letterSpacing: 0.2,
   },
   title: {
     color: '#fff',
     fontSize: 34,
-    fontWeight: '800',
-    letterSpacing: -1,
+    fontWeight: '700',
+    letterSpacing: -0.8,
   },
   subtitle: {
-    color: '#D7D5EB',
+    color: '#CBD5E1',
     marginTop: 8,
     fontSize: 15,
+    lineHeight: 22,
   },
   formCard: {
     backgroundColor: '#ffffff',
-    borderRadius: 26,
+    borderRadius: 24,
     padding: 20,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.08,
-    shadowRadius: 18,
-    elevation: 8,
+    shadowOpacity: 0.1,
+    shadowRadius: 20,
+    elevation: 6,
   },
   label: {
-    color: '#36344A',
+    color: '#334155',
     fontSize: 14,
-    fontWeight: '700',
+    fontWeight: '600',
     marginBottom: 8,
     marginTop: 8,
   },
   input: {
-    backgroundColor: '#F5F3FF',
-    borderRadius: 14,
+    backgroundColor: '#F8FAFC',
+    borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#E7E2FF',
+    borderColor: '#CBD5E1',
     paddingHorizontal: 14,
     paddingVertical: 14,
     fontSize: 15,
-    color: '#1F1D2C',
+    fontWeight: '400',
+    color: '#0d0d0e',
     marginBottom: 14,
   },
   passwordWrap: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#F5F3FF',
-    borderRadius: 14,
+    backgroundColor: '#F8FAFC',
+    borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#E7E2FF',
+    borderColor: '#CBD5E1',
     marginBottom: 12,
     paddingRight: 10,
   },
@@ -243,8 +251,8 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
   },
   showButtonText: {
-    color: '#5B4BDB',
-    fontWeight: '700',
+    color: '#0284C7',
+    fontWeight: '600',
     fontSize: 12,
   },
   rowBetween: {
@@ -262,23 +270,24 @@ const styles = StyleSheet.create({
     width: 16,
     height: 16,
     borderRadius: 5,
-    backgroundColor: '#EAE4FF',
+    backgroundColor: '#FFFFFF',
     borderWidth: 1,
-    borderColor: '#B7A8FF',
+    borderColor: '#94A3B8',
     marginRight: 8,
   },
   rememberText: {
-    color: '#504D68',
+    color: '#64748B',
     fontSize: 12,
+    lineHeight: 18,
   },
   linkText: {
-    color: '#5B4BDB',
-    fontWeight: '700',
+    color: '#0284C7',
+    fontWeight: '600',
     fontSize: 13,
   },
   primaryButton: {
-    backgroundColor: '#5B4BDB',
-    borderRadius: 16,
+    backgroundColor: '#0284C7',
+    borderRadius: 14,
     paddingVertical: 16,
     alignItems: 'center',
     justifyContent: 'center',
@@ -287,13 +296,14 @@ const styles = StyleSheet.create({
   primaryButtonText: {
     color: '#fff',
     fontSize: 16,
-    fontWeight: '800',
+    fontWeight: '700',
+    letterSpacing: 0.1,
   },
   orText: {
     textAlign: 'center',
-    color: '#8B8CA7',
+    color: '#94A3B8',
     fontSize: 12,
-    fontWeight: '600',
+    fontWeight: '500',
     marginBottom: 14,
   },
   socialRow: {
@@ -302,23 +312,31 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   socialButton: {
-    width: 52,
-    height: 52,
-    borderRadius: 16,
-    backgroundColor: '#F2EEFF',
+    width: 50,
+    height: 50,
+    borderRadius: 14,
+    backgroundColor: '#F8FAFC',
+    borderWidth: 1,
+    borderColor: '#CBD5E1',
     alignItems: 'center',
     justifyContent: 'center',
   },
   socialText: {
-    color: '#1D1B2A',
+    color: '#0F172A',
     fontSize: 22,
-    fontWeight: '700',
+    fontWeight: '600',
   },
   signupText: {
     textAlign: 'center',
-    color: '#5B586E',
+    color: '#64748B',
     marginTop: 24,
     fontSize: 14,
+    lineHeight: 20,
   },
+  terms: {
+    color: '#0284C7',
+    fontWeight: '600',
+  },
+  
 });
 
