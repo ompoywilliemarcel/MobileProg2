@@ -18,7 +18,6 @@ export default function HomeScreen() {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const [agreedToTerms, setAgreedToTerms] = useState(false);
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -98,15 +97,8 @@ export default function HomeScreen() {
             />
 
             <View style={styles.rowBetween}>
-              <TouchableOpacity
-                style={styles.rememberWrap}
-                onPress={() => setAgreedToTerms((value) => !value)}
-                accessibilityRole="checkbox"
-                accessibilityState={{ checked: agreedToTerms }}
-              >
-                <View style={[styles.checkbox, agreedToTerms && styles.checkboxChecked]}>
-                  {agreedToTerms && <Text style={styles.checkboxMark}>✓</Text>}
-                </View>
+              <TouchableOpacity style={styles.rememberWrap}>
+                <View style={styles.checkbox} />
                 <Text style={styles.rememberText}>
                   I agree to{' '}
                   <Link href="/terms" asChild>
@@ -293,17 +285,6 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#94A3B8',
     marginRight: 8,
-  },
-  checkboxChecked: {
-    backgroundColor: '#0284C7',
-    borderColor: '#0284C7',
-  },
-  checkboxMark: {
-    color: '#FFFFFF',
-    fontSize: 12,
-    fontWeight: '700',
-    lineHeight: 15,
-    textAlign: 'center',
   },
   rememberText: {
     color: '#64748B',
