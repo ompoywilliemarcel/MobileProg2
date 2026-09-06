@@ -12,11 +12,9 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-export default function HomeScreen() {
-  const [fullName, setFullName] = useState('');
+export default function LoginScreen() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
 
   return (
@@ -31,32 +29,22 @@ export default function HomeScreen() {
         >
           <View style={styles.headerRow}>
             <Text style={styles.brand}>OnlineShop</Text>
-            <Link href="/login" asChild>
+            <Link href="/" asChild>
               <TouchableOpacity style={styles.helpButton}>
-                <Text style={styles.helpText}>Login</Text>
+                <Text style={styles.helpText}>Sign up</Text>
               </TouchableOpacity>
             </Link>
           </View>
 
           <View style={styles.heroCard}>
             <View style={styles.badge}>
-              <Text style={styles.badgeText}>Fresh arrivals</Text>
+              <Text style={styles.badgeText}>Welcome back</Text>
             </View>
-            <Text style={styles.title}>Create account</Text>
-            <Text style={styles.subtitle}>Join now and shop your favorite essentials</Text>
+            <Text style={styles.title}>Log in</Text>
+            <Text style={styles.subtitle}>Continue shopping your favorite essentials</Text>
           </View>
 
           <View style={styles.formCard}>
-            <Text style={styles.label}>Full name</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="John Smith"
-              placeholderTextColor="#8B8CA7"
-              value={fullName}
-              onChangeText={setFullName}
-              autoCapitalize="words"
-            />
-
             <Text style={styles.label}>Email</Text>
             <TextInput
               style={styles.input}
@@ -66,63 +54,39 @@ export default function HomeScreen() {
               onChangeText={setEmail}
               keyboardType="email-address"
               autoCapitalize="none"
+              autoComplete="email"
             />
 
             <Text style={styles.label}>Password</Text>
             <View style={styles.passwordWrap}>
               <TextInput
                 style={[styles.input, styles.passwordInput]}
-                placeholder="   Create a password"
+                placeholder="Enter your password"
                 placeholderTextColor="#8B8CA7"
                 value={password}
                 onChangeText={setPassword}
                 secureTextEntry={!showPassword}
+                autoComplete="password"
               />
               <TouchableOpacity
                 style={styles.showButton}
                 onPress={() => setShowPassword((value) => !value)}
+                accessibilityRole="button"
+                accessibilityLabel={showPassword ? 'Hide password' : 'Show password'}
               >
                 <Text style={styles.showButtonText}>{showPassword ? 'Hide' : 'Show'}</Text>
               </TouchableOpacity>
             </View>
 
-            <Text style={styles.label}>Confirm password</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="Repeat password"
-              placeholderTextColor="#8B8CA7"
-              value={confirmPassword}
-              onChangeText={setConfirmPassword}
-              secureTextEntry={!showPassword}
-            />
-
-            <View style={styles.rowBetween}>
-              <TouchableOpacity style={styles.rememberWrap}>
-                <View style={styles.checkbox} />
-                <Text style={styles.rememberText}>I agree to <Text style={styles.terms}>Terms & Conditions</Text></Text>
-              </TouchableOpacity>
-            </View>
-
             <TouchableOpacity style={styles.primaryButton}>
-              <Text style={styles.primaryButtonText}>Create account</Text>
+              <Text style={styles.primaryButtonText}>Log in</Text>
             </TouchableOpacity>
-
-            <Text style={styles.orText}>or sign up with</Text>
-
-            <View style={styles.socialRow}>
-              <TouchableOpacity style={styles.socialButton}>
-                <Text style={styles.socialText}>G</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.socialButton}>
-                <Text style={styles.socialText}>f</Text>
-              </TouchableOpacity>
-            </View>
           </View>
 
           <Text style={styles.signupText}>
-            Already have an account?{' '}
-            <Link href="/login" asChild>
-              <Text style={styles.linkText}>Log in</Text>
+            New to OnlineShop?{' '}
+            <Link href="/" asChild>
+              <Text style={styles.linkText}>Create an account</Text>
             </Link>
           </Text>
         </ScrollView>
@@ -156,7 +120,6 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: '#0F172A',
     letterSpacing: -0.8,
-    fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif"
   },
   helpButton: {
     paddingHorizontal: 12,
@@ -243,7 +206,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     borderWidth: 1,
     borderColor: '#CBD5E1',
-    marginBottom: 12,
+    marginBottom: 18,
     paddingRight: 10,
   },
   passwordInput: {
@@ -261,76 +224,18 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     fontSize: 12,
   },
-  rowBetween: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginTop: 6,
-    marginBottom: 18,
-  },
-  rememberWrap: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  checkbox: {
-    width: 16,
-    height: 16,
-    borderRadius: 5,
-    backgroundColor: '#FFFFFF',
-    borderWidth: 1,
-    borderColor: '#94A3B8',
-    marginRight: 8,
-  },
-  rememberText: {
-    color: '#64748B',
-    fontSize: 12,
-    lineHeight: 18,
-  },
-  linkText: {
-    color: '#0284C7',
-    fontWeight: '600',
-    fontSize: 13,
-  },
   primaryButton: {
     backgroundColor: '#0284C7',
     borderRadius: 14,
     paddingVertical: 16,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 18,
   },
   primaryButtonText: {
     color: '#fff',
     fontSize: 16,
     fontWeight: '700',
     letterSpacing: 0.1,
-  },
-  orText: {
-    textAlign: 'center',
-    color: '#94A3B8',
-    fontSize: 12,
-    fontWeight: '500',
-    marginBottom: 14,
-  },
-  socialRow: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    gap: 12,
-  },
-  socialButton: {
-    width: 50,
-    height: 50,
-    borderRadius: 14,
-    backgroundColor: '#F8FAFC',
-    borderWidth: 1,
-    borderColor: '#CBD5E1',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  socialText: {
-    color: '#0F172A',
-    fontSize: 22,
-    fontWeight: '600',
   },
   signupText: {
     textAlign: 'center',
@@ -339,10 +244,8 @@ const styles = StyleSheet.create({
     fontSize: 14,
     lineHeight: 20,
   },
-  terms: {
+  linkText: {
     color: '#0284C7',
     fontWeight: '600',
   },
-  
 });
-
