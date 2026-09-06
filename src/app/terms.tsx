@@ -1,10 +1,16 @@
-import { ScrollView, StyleSheet, Text } from 'react-native';
+import { Link } from 'expo-router';
+import { ScrollView, StyleSheet, Text, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function TermsScreen() {
   return (
     <SafeAreaView style={styles.safeArea}>
       <ScrollView contentContainerStyle={styles.content}>
+        <Link href="/" asChild>
+          <TouchableOpacity style={styles.backButton}>
+            <Text style={styles.backButtonText}>Back to sign up</Text>
+          </TouchableOpacity>
+        </Link>
         <Text style={styles.title}>TERMS &amp; CONDITIONS</Text>
         <Text style={styles.body}>
           {'1. Orders — By placing an order, customers agree to the terms and conditions stated below. Please make sure that all order details, including the product, quantity, size/color, shipping address, and contact information, are correct before confirming your order.\n\n'}
@@ -34,6 +40,21 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     paddingHorizontal: 24,
     paddingVertical: 32,
+  },
+  backButton: {
+    alignSelf: 'flex-start',
+    backgroundColor: '#E0F2FE',
+    borderColor: '#BAE6FD',
+    borderRadius: 999,
+    borderWidth: 1,
+    marginBottom: 24,
+    paddingHorizontal: 14,
+    paddingVertical: 9,
+  },
+  backButtonText: {
+    color: '#0284C7',
+    fontSize: 13,
+    fontWeight: '600',
   },
   title: {
     color: '#0284C7',
