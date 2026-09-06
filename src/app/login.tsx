@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Link } from 'expo-router';
 import {
+  Alert,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
@@ -16,6 +17,15 @@ export default function LoginScreen() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+
+  const handleLogin = () => {
+    if (!email.trim() || !password) {
+      Alert.alert('Missing details', 'Enter your email and password to log in.');
+      return;
+    }
+
+    Alert.alert('Ready to log in', 'Your login details have been entered.');
+  };
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -78,7 +88,7 @@ export default function LoginScreen() {
               </TouchableOpacity>
             </View>
 
-            <TouchableOpacity style={styles.primaryButton}>
+            <TouchableOpacity style={styles.primaryButton} onPress={handleLogin}>
               <Text style={styles.primaryButtonText}>Log in</Text>
             </TouchableOpacity>
           </View>
