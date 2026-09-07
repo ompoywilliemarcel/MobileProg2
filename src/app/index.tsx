@@ -1,4 +1,4 @@
-import { Link } from 'expo-router';
+import { Link, useRouter } from 'expo-router';
 import { useState } from 'react';
 import {
   KeyboardAvoidingView,
@@ -13,12 +13,29 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function HomeScreen() {
+  const router = useRouter();
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [agreedToTerms, setAgreedToTerms] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
+
+  const handleCreateAccount = () => {
+    if (!fullName || !email || !password || !confirmPassword) {
+      setErrorMessage('Please fill out all required fields.');
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      setErrorMessage('Password and Confirm Password do not match.');
+      return;
+    }
+
+    setErrorMessage('');
+    router.push('/login');
+  };
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -97,6 +114,8 @@ export default function HomeScreen() {
               secureTextEntry={!showPassword}
             />
 
+            {errorMessage ? <Text style={styles.errorText}>{errorMessage}</Text> : null}
+
             <View style={styles.rowBetween}>
               <View style={styles.rememberWrap}>
                 <TouchableOpacity
@@ -120,6 +139,7 @@ export default function HomeScreen() {
             <TouchableOpacity
               style={[styles.primaryButton, !agreedToTerms && styles.primaryButtonDisabled]}
               disabled={!agreedToTerms}
+              onPress={handleCreateAccount}
               accessibilityRole="button"
               accessibilityState={{ disabled: !agreedToTerms }}
               accessibilityHint={
@@ -381,6 +401,11 @@ const styles = StyleSheet.create({
   terms: {
     color: '#0284C7',
     fontWeight: '600',
+  },
+  errorText: {
+    color: '#DC2626',
+    fontSize: 13,
+    marginBottom: 8,
   },
   
 });
