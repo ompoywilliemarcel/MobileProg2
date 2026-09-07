@@ -117,7 +117,17 @@ export default function HomeScreen() {
               </View>
             </View>
 
-            <TouchableOpacity style={styles.primaryButton}>
+            <TouchableOpacity
+              style={[styles.primaryButton, !agreedToTerms && styles.primaryButtonDisabled]}
+              disabled={!agreedToTerms}
+              accessibilityRole="button"
+              accessibilityState={{ disabled: !agreedToTerms }}
+              accessibilityHint={
+                agreedToTerms
+                  ? 'Creates your account'
+                  : 'Agree to the Terms and Conditions to create an account'
+              }
+            >
               <Text style={styles.primaryButtonText}>Create account</Text>
             </TouchableOpacity>
 
@@ -323,6 +333,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 18,
+  },
+  primaryButtonDisabled: {
+    backgroundColor: '#94A3B8',
+    opacity: 0.65,
   },
   primaryButtonText: {
     color: '#fff',
