@@ -1,5 +1,6 @@
 import { Link, useLocalSearchParams, useRouter } from 'expo-router';
 import {
+  Image,
   ScrollView,
   StyleSheet,
   Text,
@@ -7,21 +8,22 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { products } from '../../data/products';
 import DarkRadialBackground from '../../components/DarkRadialBackground';
+import { products } from '../../data/products';
 
 export default function ProductDetailsScreen() {
   const { id } = useLocalSearchParams();
   const productId = Array.isArray(id) ? id[0] : id;
-  const product = products.find((item) => item.id === productId);
+  
+  // ✅ FIX: Convert string ID → Number to match your product IDs
+  const product = products.find((item) => item.id === Number(productId));
+  
   const router = useRouter();
-
   const goBack = () => {
     if (router.canGoBack()) {
       router.back();
       return;
     }
-
     router.replace('/');
   };
 
@@ -44,28 +46,41 @@ export default function ProductDetailsScreen() {
               <View style={styles.artGlow} />
               <View style={styles.productShadow} />
               <View style={styles.productStage} />
-              <Text style={styles.productEmoji}>{product.emoji}</Text>
-              <Text style={styles.imageLabel}>OFFICIAL MERCH</Text>
+              
+              {/* ✅ UPDATED: Show your real image instead of emoji */}
+              <Image
+                source={product.image}
+                style={styles.productImageFile}
+                resizeMode="contain"
+              />
+              
             </View>
+
             <View style={styles.badge}>
               <Text style={styles.badgeText}>{product.category}</Text>
             </View>
+
             <Text style={styles.title}>{product.name}</Text>
             <Text style={styles.price}>{product.price}</Text>
 
             <View style={styles.divider} />
+
             <Text style={styles.sectionLabel}>Product details</Text>
-            <Text style={styles.description}>{product.description}</Text>
+            <Text style={styles.description}>
+              {product.description || 'Premium quality official merchandise. Comfortable, stylish, and made to last.'}
+            </Text>
 
             <Text style={styles.sectionLabel}>Color</Text>
             <View style={styles.colorRow}>
               <View style={[styles.colorSwatch, { backgroundColor: product.color }]} />
-              <Text style={styles.colorName}>{product.colorName}</Text>
+              <Text style={styles.colorName}>
+                {product.colorName || 'Official Collection'}
+              </Text>
             </View>
 
             <Text style={styles.sectionLabel}>Available sizes</Text>
             <View style={styles.sizeRow}>
-              {product.sizes.map((size) => (
+              {(product.sizes || ['S', 'M', 'L', 'XL']).map((size) => (
                 <View key={size} style={styles.sizeChip}>
                   <Text style={styles.sizeText}>{size}</Text>
                 </View>
@@ -75,7 +90,7 @@ export default function ProductDetailsScreen() {
             <View style={styles.idPanel}>
               <Text style={styles.idLabel}>MERCH SKU</Text>
               <Text style={styles.idValue}>
-                MERCH-{product.id.padStart(3, '0')}
+                MERCH-{String(product.id).padStart(3, '0')}
               </Text>
             </View>
           </View>
@@ -160,12 +175,10 @@ const styles = StyleSheet.create({
     position: 'absolute',
     width: 166,
   },
-  productEmoji: {
-    fontSize: 106,
-    textShadowColor: 'rgba(0,0,0,0.4)',
-    textShadowOffset: { width: 3, height: 12 },
-    textShadowRadius: 12,
-    transform: [{ perspective: 700 }, { rotateY: '-8deg' }, { translateY: -12 }],
+  productImageFile: {
+    width: '80%',
+    height: '80%',
+    position: 'absolute',
   },
   imageLabel: {
     bottom: 12,

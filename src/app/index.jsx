@@ -1,5 +1,6 @@
 import { Link } from 'expo-router';
 import {
+  Image,
   ScrollView,
   StyleSheet,
   Text,
@@ -7,8 +8,8 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { products } from '../data/products';
 import DarkRadialBackground from '../components/DarkRadialBackground';
+import { products } from '../data/products';
 
 export default function HomeScreen() {
   return (
@@ -17,9 +18,17 @@ export default function HomeScreen() {
       <ScrollView contentContainerStyle={styles.content}>
         <View style={styles.headerRow}>
           <View>
-            <Text style={styles.brand}>Merch Store</Text>
-            <Text style={styles.eyebrow}>OFFICIAL COLLECTION</Text>
-          </View>
+            <Image
+               source={require('../../assets/products/logo.png')}
+               style={styles.logo}
+               resizeMode="contain"
+            /> 
+            <View>
+               <Text style={styles.brand}>USTP Wear</Text>
+               <Text style={styles.eyebrow}>OFFICIAL COLLECTION</Text>
+            </View>
+        </View>
+           
           <Link href="/login" asChild>
             <TouchableOpacity style={styles.headerButton}>
               <Text style={styles.headerButtonText}>Login</Text>
@@ -31,9 +40,9 @@ export default function HomeScreen() {
           <View style={styles.badge}>
             <Text style={styles.badgeText}>Fresh arrivals</Text>
           </View>
-          <Text style={styles.heroTitle}>Wear what you love.</Text>
+          <Text style={styles.heroTitle}>Wear your pride, love what you represent.</Text>
           <Text style={styles.heroSubtitle}>
-            Shop the latest apparel and accessories from our merch collection.
+            Apparel & accessories made for our school family.
           </Text>
         </View>
 
@@ -68,7 +77,11 @@ export default function HomeScreen() {
                   <View style={styles.artGlow} />
                   <View style={styles.productShadow} />
                   <View style={styles.productStage} />
-                  <Text style={styles.productEmoji}>{product.emoji}</Text>
+                  <Image
+                    source={product.image}
+                    style={styles.productImageFile}
+                    resizeMode="contain"
+                  />
                   <View style={styles.productTag}>
                     <Text style={styles.productTagText}>MERCH DROP</Text>
                   </View>
@@ -251,12 +264,10 @@ const styles = StyleSheet.create({
     position: 'absolute',
     width: 94,
   },
-  productEmoji: {
-    fontSize: 67,
-    textShadowColor: 'rgba(0,0,0,0.35)',
-    textShadowOffset: { width: 2, height: 8 },
-    textShadowRadius: 8,
-    transform: [{ perspective: 500 }, { rotateY: '-9deg' }, { translateY: -7 }],
+  productImageFile: {
+    width: '80%',
+    height: '80%',
+    position: 'absolute',
   },
   productTag: {
     backgroundColor: 'rgba(255,255,255,0.88)',
@@ -325,5 +336,16 @@ const styles = StyleSheet.create({
     color: '#D9B45B',
     fontSize: 13,
     fontWeight: '700',
+  },
+   
+  brandRow: {
+  flexDirection: 'row',
+  alignItems: 'center',
+  gap: 10, 
+  },
+
+  logo: {
+  width: 50,
+  height: 50,
   },
 });
