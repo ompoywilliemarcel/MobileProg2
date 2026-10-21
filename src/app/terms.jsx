@@ -19,7 +19,7 @@ export default function TermsScreen() {
       <ScrollView contentContainerStyle={styles.content}>
         <View style={styles.headerRow}>
           <Text style={styles.brand}>OnlineShop</Text>
-          <Link href="/" asChild>
+          <Link href="/signup" asChild>
             <TouchableOpacity style={styles.backButton}>
               <Text style={styles.backButtonText}>Back</Text>
             </TouchableOpacity>
@@ -84,7 +84,7 @@ export default function TermsScreen() {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: "#acd3f2",
+    backgroundColor: "#0B1F33",
   },
   backgroundDecor: {
     ...StyleSheet.absoluteFill,
@@ -95,7 +95,7 @@ const styles = StyleSheet.create({
     width: 220,
     height: 220,
     borderRadius: 110,
-    backgroundColor: "rgba(255,255,255,0.18)",
+    backgroundColor: "rgba(217,180,91,0.12)",
     top: -60,
     right: -30,
   },
@@ -104,7 +104,7 @@ const styles = StyleSheet.create({
     width: 180,
     height: 180,
     borderRadius: 90,
-    backgroundColor: "rgba(14,165,233,0.12)",
+    backgroundColor: "rgba(217,180,91,0.10)",
     bottom: 90,
     left: -40,
   },
@@ -123,28 +123,28 @@ const styles = StyleSheet.create({
   brand: {
     fontSize: 28,
     fontWeight: "700",
-    color: "#0F172A",
+    color: "#FFFFFF",
     letterSpacing: -0.8,
   },
   backButton: {
-    backgroundColor: "#E0F2FE",
-    borderColor: "#BAE6FD",
+    backgroundColor: "#D9B45B",
+    borderColor: "#E7C875",
     borderRadius: 999,
     borderWidth: 1,
     paddingHorizontal: 12,
     paddingVertical: 8,
   },
   backButtonText: {
-    color: "#0369A1",
+    color: "#0B1F33",
     fontSize: 12,
     fontWeight: "600",
   },
   heroCard: {
-    backgroundColor: "#0F172A",
+    backgroundColor: "#183653",
     borderRadius: 28,
     padding: 24,
     marginBottom: 22,
-    shadowColor: "#0F172A",
+    shadowColor: "#0B1F33",
     shadowOffset: { width: 0, height: 16 },
     shadowOpacity: 0.2,
     shadowRadius: 24,
@@ -152,26 +152,26 @@ const styles = StyleSheet.create({
   },
   badge: {
     alignSelf: "flex-start",
-    backgroundColor: "#0EA5E9",
+    backgroundColor: "#D9B45B",
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 999,
     marginBottom: 16,
   },
   badgeText: {
-    color: "#fff",
+    color: "#0B1F33",
     fontWeight: "600",
     fontSize: 11,
     letterSpacing: 0.2,
   },
   title: {
-    color: "#fff",
+    color: "#FFFFFF",
     fontSize: 30,
     fontWeight: "700",
     letterSpacing: -0.8,
   },
   subtitle: {
-    color: "#CBD5E1",
+    color: "#E2E8F0",
     marginTop: 8,
     fontSize: 15,
     lineHeight: 22,
@@ -180,7 +180,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#ffffff",
     borderRadius: 24,
     borderWidth: 1,
-    borderColor: "#E2E8F0",
+    borderColor: "#D9B45B",
     padding: 20,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 10 },
@@ -189,7 +189,7 @@ const styles = StyleSheet.create({
     elevation: 6,
   },
   body: {
-    color: "#0F172A",
+    color: "#0B1F33",
     fontSize: 15,
     lineHeight: 24,
   },

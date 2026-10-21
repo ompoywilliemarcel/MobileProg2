@@ -1,176 +1,87 @@
-import { Link, useRouter } from 'expo-router';
-import { useState } from 'react';
+import { Link } from 'expo-router';
 import {
-  KeyboardAvoidingView,
-  Platform,
   ScrollView,
   StyleSheet,
   Text,
-  TextInput,
   TouchableOpacity,
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { products } from '../data/products';
 
 export default function HomeScreen() {
-  const router = useRouter();
-  const [fullName, setFullName] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
-  const [agreedToTerms, setAgreedToTerms] = useState(false);
-  const [errorMessage, setErrorMessage] = useState('');
-
-  const handleCreateAccount = () => {
-    if (!fullName || !email || !password || !confirmPassword) {
-      setErrorMessage('Please fill out all required fields.');
-      return;
-    }
-
-    if (password !== confirmPassword) {
-      setErrorMessage('Password and Confirm Password do not match.');
-      return;
-    }
-
-    setErrorMessage('');
-    router.push('/login');
-  };
-
   return (
     <SafeAreaView style={styles.safeArea}>
-      <KeyboardAvoidingView
-        style={styles.container}
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-      >
-        <ScrollView
-          contentContainerStyle={styles.scrollContent}
-          keyboardShouldPersistTaps="handled"
-        >
-          <View style={styles.headerRow}>
+      <ScrollView contentContainerStyle={styles.content}>
+        <View style={styles.headerRow}>
+          <View>
             <Text style={styles.brand}>OnlineShop</Text>
-            <Link href="/login" asChild>
-              <TouchableOpacity style={styles.helpButton}>
-                <Text style={styles.helpText}>Login</Text>
-              </TouchableOpacity>
-            </Link>
+            <Text style={styles.eyebrow}>CURATED FOR EVERYDAY</Text>
           </View>
-
-          <View style={styles.heroCard}>
-            <View style={styles.badge}>
-              <Text style={styles.badgeText}>Fresh arrivals</Text>
-            </View>
-            <Text style={styles.title}>Create account</Text>
-            <Text style={styles.subtitle}>Join now and shop your favorite essentials</Text>
-          </View>
-
-          <View style={styles.formCard}>
-            <Text style={styles.label}>Full name</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="John Smith"
-              placeholderTextColor="#8B8CA7"
-              value={fullName}
-              onChangeText={setFullName}
-              autoCapitalize="words"
-            />
-
-            <Text style={styles.label}>Email</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="you@example.com"
-              placeholderTextColor="#8B8CA7"
-              value={email}
-              onChangeText={setEmail}
-              keyboardType="email-address"
-              autoCapitalize="none"
-            />
-
-            <Text style={styles.label}>Password</Text>
-            <View style={styles.passwordWrap}>
-              <TextInput
-                style={[styles.input, styles.passwordInput]}
-                placeholder="   Create a password"
-                placeholderTextColor="#8B8CA7"
-                value={password}
-                onChangeText={setPassword}
-                secureTextEntry={!showPassword}
-              />
-              <TouchableOpacity
-                style={styles.showButton}
-                onPress={() => setShowPassword((value) => !value)}
-              >
-                <Text style={styles.showButtonText}>{showPassword ? 'Hide' : 'Show'}</Text>
-              </TouchableOpacity>
-            </View>
-
-            <Text style={styles.label}>Confirm password</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="Repeat password"
-              placeholderTextColor="#8B8CA7"
-              value={confirmPassword}
-              onChangeText={setConfirmPassword}
-              secureTextEntry={!showPassword}
-            />
-
-            {errorMessage ? <Text style={styles.errorText}>{errorMessage}</Text> : null}
-
-            <View style={styles.rowBetween}>
-              <View style={styles.rememberWrap}>
-                <TouchableOpacity
-                  onPress={() => setAgreedToTerms((value) => !value)}
-                  accessibilityRole="checkbox"
-                  accessibilityState={{ checked: agreedToTerms }}
-                >
-                  <View style={[styles.checkbox, agreedToTerms && styles.checkboxChecked]}>
-                    {agreedToTerms && <Text style={styles.checkboxMark}>✓</Text>}
-                  </View>
-                </TouchableOpacity>
-                <Text style={styles.rememberText}>
-                  I agree to{' '}
-                  <Link href="/terms" asChild>
-                    <Text style={styles.terms}>Terms & Conditions</Text>
-                  </Link>
-                </Text>
-              </View>
-            </View>
-
-            <TouchableOpacity
-              style={[styles.primaryButton, !agreedToTerms && styles.primaryButtonDisabled]}
-              disabled={!agreedToTerms}
-              onPress={handleCreateAccount}
-              accessibilityRole="button"
-              accessibilityState={{ disabled: !agreedToTerms }}
-              accessibilityHint={
-                agreedToTerms
-                  ? 'Creates your account'
-                  : 'Agree to the Terms and Conditions to create an account'
-              }
-            >
-              <Text style={styles.primaryButtonText}>Create account</Text>
+          <Link href="/login" asChild>
+            <TouchableOpacity style={styles.headerButton}>
+              <Text style={styles.headerButtonText}>Login</Text>
             </TouchableOpacity>
+          </Link>
+        </View>
 
-            <Text style={styles.orText}>or sign up with</Text>
-
-            <View style={styles.socialRow}>
-              <TouchableOpacity style={styles.socialButton}>
-                <Text style={styles.socialText}>G</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.socialButton}>
-                <Text style={styles.socialText}>f</Text>
-              </TouchableOpacity>
-            </View>
+        <View style={styles.heroCard}>
+          <View style={styles.badge}>
+            <Text style={styles.badgeText}>Fresh arrivals</Text>
           </View>
-
-          <Text style={styles.signupText}>
-            Already have an account?{' '}
-            <Link href="/login" asChild>
-              <Text style={styles.linkText}>Log in</Text>
-            </Link>
+          <Text style={styles.heroTitle}>Find your next favorite</Text>
+          <Text style={styles.heroSubtitle}>
+            Thoughtful picks for your home and everyday life.
           </Text>
-        </ScrollView>
-      </KeyboardAvoidingView>
+        </View>
+
+        <View style={styles.sectionHeading}>
+          <View>
+            <Text style={styles.sectionTitle}>Discover</Text>
+            <Text style={styles.sectionSubtitle}>Find something you’ll love</Text>
+          </View>
+          <Text style={styles.itemCount}>{products.length} items</Text>
+        </View>
+
+        <View style={styles.productList}>
+          {products.map((product) => (
+            <Link
+              key={product.id}
+              href={{ pathname: '/details/[id]', params: { id: product.id } }}
+              asChild
+            >
+              <TouchableOpacity
+                style={styles.productCard}
+                accessibilityRole="button"
+                accessibilityLabel={`View ${product.name}, ${product.price}`}
+              >
+                <View style={[styles.productImage, { backgroundColor: product.color }]}>
+                  <Text style={styles.productEmoji}>{product.emoji}</Text>
+                  <View style={styles.productTag}>
+                    <Text style={styles.productTagText}>PICKED FOR YOU</Text>
+                  </View>
+                </View>
+                <View style={styles.productInfo}>
+                  <Text style={styles.productCategory}>{product.category}</Text>
+                  <Text style={styles.productName} numberOfLines={2}>{product.name}</Text>
+                  <View style={styles.productFooter}>
+                    <Text style={styles.productPrice}>{product.price}</Text>
+                    <View style={styles.addButton}>
+                      <Text style={styles.addButtonText}>›</Text>
+                    </View>
+                  </View>
+                </View>
+              </TouchableOpacity>
+            </Link>
+          ))}
+        </View>
+
+        <Link href="/signup" asChild>
+          <TouchableOpacity style={styles.signupLink}>
+            <Text style={styles.signupLinkText}>Create an account</Text>
+          </TouchableOpacity>
+        </Link>
+      </ScrollView>
     </SafeAreaView>
   );
 }
@@ -178,14 +89,11 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#acd3f2',
+    backgroundColor: '#0B1F33',
   },
-  container: {
-    flex: 1,
-  },
-  scrollContent: {
+  content: {
     flexGrow: 1,
-    paddingHorizontal: 24,
+    paddingHorizontal: 22,
     paddingTop: 12,
     paddingBottom: 32,
   },
@@ -193,220 +101,183 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 20,
+    marginBottom: 22,
   },
   brand: {
+    color: '#FFFFFF',
     fontSize: 28,
     fontWeight: '700',
-    color: '#0F172A',
     letterSpacing: -0.8,
-    fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif"
   },
-  helpButton: {
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 999,
-    backgroundColor: '#E0F2FE',
+  eyebrow: {
+    color: '#D9B45B',
+    fontSize: 9,
+    fontWeight: '700',
+    letterSpacing: 1.4,
+    marginTop: 3,
+  },
+  headerButton: {
+    backgroundColor: '#D9B45B',
+    borderColor: '#E7C875',
     borderWidth: 1,
-    borderColor: '#BAE6FD',
+    borderRadius: 999,
+    paddingHorizontal: 16,
+    paddingVertical: 9,
   },
-  helpText: {
-    color: '#0369A1',
-    fontSize: 12,
-    fontWeight: '600',
+  headerButtonText: {
+    color: '#0B1F33',
+    fontSize: 13,
+    fontWeight: '700',
   },
   heroCard: {
-    backgroundColor: '#0F172A',
+    backgroundColor: '#183653',
     borderRadius: 28,
+    justifyContent: 'center',
+    minHeight: 180,
     padding: 24,
     marginBottom: 22,
-    minHeight: 180,
-    justifyContent: 'center',
   },
   badge: {
     alignSelf: 'flex-start',
-    backgroundColor: '#0EA5E9',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
+    backgroundColor: '#D9B45B',
     borderRadius: 999,
     marginBottom: 16,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
   },
   badgeText: {
-    color: '#fff',
-    fontWeight: '600',
+    color: '#0B1F33',
     fontSize: 11,
+    fontWeight: '600',
     letterSpacing: 0.2,
   },
-  title: {
-    color: '#fff',
-    fontSize: 34,
+  heroTitle: {
+    color: '#FFFFFF',
+    fontSize: 32,
     fontWeight: '700',
     letterSpacing: -0.8,
   },
-  subtitle: {
-    color: '#CBD5E1',
-    marginTop: 8,
+  heroSubtitle: {
+    color: '#E2E8F0',
     fontSize: 15,
     lineHeight: 22,
-  },
-  formCard: {
-    backgroundColor: '#ffffff',
-    borderRadius: 24,
-    padding: 20,
-    borderWidth: 1,
-    borderColor: '#E2E8F0',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.1,
-    shadowRadius: 20,
-    elevation: 6,
-  },
-  label: {
-    color: '#334155',
-    fontSize: 14,
-    fontWeight: '600',
-    marginBottom: 8,
     marginTop: 8,
   },
-  input: {
-    backgroundColor: '#F8FAFC',
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: '#CBD5E1',
-    paddingHorizontal: 14,
-    paddingVertical: 14,
-    fontSize: 15,
-    fontWeight: '400',
-    color: '#0d0d0e',
-    marginBottom: 14,
-  },
-  passwordWrap: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#F8FAFC',
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: '#CBD5E1',
-    marginBottom: 12,
-    paddingRight: 10,
-  },
-  passwordInput: {
-    flex: 1,
-    borderWidth: 0,
-    backgroundColor: 'transparent',
-    marginBottom: 0,
-  },
-  showButton: {
-    paddingHorizontal: 10,
-    paddingVertical: 10,
-  },
-  showButtonText: {
-    color: '#0284C7',
-    fontWeight: '600',
-    fontSize: 12,
-  },
-  rowBetween: {
+  sectionHeading: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginTop: 6,
-    marginBottom: 18,
+    marginBottom: 13,
   },
-  rememberWrap: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  checkbox: {
-    width: 16,
-    height: 16,
-    borderRadius: 5,
-    backgroundColor: '#FFFFFF',
-    borderWidth: 1,
-    borderColor: '#94A3B8',
-    marginRight: 8,
-  },
-  checkboxChecked: {
-    backgroundColor: '#0284C7',
-    borderColor: '#0284C7',
-  },
-  checkboxMark: {
+  sectionTitle: {
     color: '#FFFFFF',
-    fontSize: 12,
-    fontWeight: '700',
-    lineHeight: 14,
-    textAlign: 'center',
+    fontSize: 22,
+    fontWeight: '800',
   },
-  rememberText: {
-    color: '#64748B',
+  sectionSubtitle: {
+    color: '#C4D0DC',
     fontSize: 12,
-    lineHeight: 18,
+    marginTop: 3,
   },
-  linkText: {
-    color: '#0284C7',
+  itemCount: {
+    color: '#D9B45B',
+    fontSize: 12,
     fontWeight: '600',
-    fontSize: 13,
   },
-  primaryButton: {
-    backgroundColor: '#0284C7',
-    borderRadius: 14,
-    paddingVertical: 16,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 18,
-  },
-  primaryButtonDisabled: {
-    backgroundColor: '#94A3B8',
-    opacity: 0.65,
-  },
-  primaryButtonText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: '700',
-    letterSpacing: 0.1,
-  },
-  orText: {
-    textAlign: 'center',
-    color: '#94A3B8',
-    fontSize: 12,
-    fontWeight: '500',
-    marginBottom: 14,
-  },
-  socialRow: {
+  productList: {
     flexDirection: 'row',
-    justifyContent: 'center',
-    gap: 12,
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+    rowGap: 14,
   },
-  socialButton: {
-    width: 50,
-    height: 50,
-    borderRadius: 14,
-    backgroundColor: '#F8FAFC',
+  productCard: {
+    backgroundColor: '#FFFFFF',
+    borderColor: '#D9B45B',
+    borderRadius: 18,
     borderWidth: 1,
-    borderColor: '#CBD5E1',
+    overflow: 'hidden',
+    width: '48%',
+    shadowColor: '#0B1F33',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.08,
+    shadowRadius: 9,
+    elevation: 3,
+  },
+  productImage: {
     alignItems: 'center',
     justifyContent: 'center',
+    height: 145,
+    position: 'relative',
   },
-  socialText: {
-    color: '#0F172A',
+  productEmoji: {
+    fontSize: 67,
+  },
+  productTag: {
+    backgroundColor: 'rgba(255,255,255,0.88)',
+    borderRadius: 999,
+    bottom: 9,
+    left: 9,
+    paddingHorizontal: 8,
+    paddingVertical: 5,
+    position: 'absolute',
+  },
+  productTagText: {
+    color: '#0B1F33',
+    fontSize: 8,
+    fontWeight: '800',
+    letterSpacing: 0.3,
+  },
+  productInfo: {
+    padding: 11,
+  },
+  productCategory: {
+    color: '#526579',
+    fontSize: 9,
+    fontWeight: '700',
+    letterSpacing: 0.6,
+    textTransform: 'uppercase',
+  },
+  productName: {
+    color: '#0B1F33',
+    fontSize: 14,
+    fontWeight: '700',
+    lineHeight: 18,
+    marginTop: 5,
+    minHeight: 36,
+  },
+  productFooter: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 8,
+  },
+  productPrice: {
+    color: '#0B1F33',
+    fontSize: 17,
+    fontWeight: '800',
+  },
+  addButton: {
+    alignItems: 'center',
+    backgroundColor: '#D9B45B',
+    borderRadius: 999,
+    height: 28,
+    justifyContent: 'center',
+    width: 28,
+  },
+  addButtonText: {
+    color: '#0B1F33',
     fontSize: 22,
     fontWeight: '600',
+    lineHeight: 25,
   },
-  signupText: {
-    textAlign: 'center',
-    color: '#64748B',
-    marginTop: 24,
-    fontSize: 14,
-    lineHeight: 20,
+  signupLink: {
+    alignSelf: 'center',
+    padding: 14,
+    marginTop: 12,
   },
-  terms: {
-    color: '#0284C7',
-    fontWeight: '600',
-  },
-  errorText: {
-    color: '#DC2626',
+  signupLinkText: {
+    color: '#D9B45B',
     fontSize: 13,
-    marginBottom: 8,
+    fontWeight: '700',
   },
-  
 });
-

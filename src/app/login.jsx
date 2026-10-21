@@ -42,7 +42,7 @@ export default function LoginScreen() {
         >
           <View style={styles.headerRow}>
             <Text style={styles.brand}>OnlineShop</Text>
-            <Link href="/" asChild>
+            <Link href="/signup" asChild>
               <TouchableOpacity style={styles.helpButton}>
                 <Text style={styles.helpText}>Sign up</Text>
               </TouchableOpacity>
@@ -107,7 +107,7 @@ export default function LoginScreen() {
 
           <Text style={styles.signupText}>
             New to OnlineShop?{" "}
-            <Link href="/" asChild>
+            <Link href="/signup" asChild>
               <Text style={styles.linkText}>Create an account</Text>
             </Link>
           </Text>
@@ -120,7 +120,7 @@ export default function LoginScreen() {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: "#acd3f2",
+    backgroundColor: "#0B1F33",
   },
   container: {
     flex: 1,
@@ -140,24 +140,24 @@ const styles = StyleSheet.create({
   brand: {
     fontSize: 28,
     fontWeight: "700",
-    color: "#0F172A",
+    color: "#FFFFFF",
     letterSpacing: -0.8,
   },
   helpButton: {
     paddingHorizontal: 12,
     paddingVertical: 8,
     borderRadius: 999,
-    backgroundColor: "#E0F2FE",
+    backgroundColor: "#D9B45B",
     borderWidth: 1,
-    borderColor: "#2487bc",
+    borderColor: "#E7C875",
   },
   helpText: {
-    color: "#052131",
+    color: "#0B1F33",
     fontSize: 12,
     fontWeight: "600",
   },
   heroCard: {
-    backgroundColor: "#0F172A",
+    backgroundColor: "#183653",
     borderRadius: 28,
     padding: 24,
     marginBottom: 22,
@@ -166,26 +166,26 @@ const styles = StyleSheet.create({
   },
   badge: {
     alignSelf: "flex-start",
-    backgroundColor: "#0EA5E9",
+    backgroundColor: "#D9B45B",
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 999,
     marginBottom: 16,
   },
   badgeText: {
-    color: "#fff",
+    color: "#0B1F33",
     fontWeight: "600",
     fontSize: 11,
     letterSpacing: 0.2,
   },
   title: {
-    color: "#fff",
+    color: "#FFFFFF",
     fontSize: 34,
     fontWeight: "700",
     letterSpacing: -0.8,
   },
   subtitle: {
-    color: "#CBD5E1",
+    color: "#E2E8F0",
     marginTop: 8,
     fontSize: 15,
     lineHeight: 22,
@@ -195,7 +195,7 @@ const styles = StyleSheet.create({
     borderRadius: 24,
     padding: 20,
     borderWidth: 1,
-    borderColor: "#E2E8F0",
+    borderColor: "#D9B45B",
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 10 },
     shadowOpacity: 0.1,
@@ -203,31 +203,31 @@ const styles = StyleSheet.create({
     elevation: 6,
   },
   label: {
-    color: "#334155",
+    color: "#0B1F33",
     fontSize: 14,
     fontWeight: "600",
     marginBottom: 8,
     marginTop: 8,
   },
   input: {
-    backgroundColor: "#F8FAFC",
+    backgroundColor: "#F8F7F2",
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: "#CBD5E1",
+    borderColor: "#D8D2C5",
     paddingHorizontal: 14,
     paddingVertical: 14,
     fontSize: 15,
     fontWeight: "400",
-    color: "#0d0d0e",
+    color: "#0B1F33",
     marginBottom: 14,
   },
   passwordWrap: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#F8FAFC",
+    backgroundColor: "#F8F7F2",
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: "#CBD5E1",
+    borderColor: "#D8D2C5",
     marginBottom: 18,
     paddingRight: 10,
   },
@@ -242,32 +242,32 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
   },
   showButtonText: {
-    color: "#0284C7",
+    color: "#9A741E",
     fontWeight: "600",
     fontSize: 12,
   },
   primaryButton: {
-    backgroundColor: "#0284C7",
+    backgroundColor: "#D9B45B",
     borderRadius: 14,
     paddingVertical: 16,
     alignItems: "center",
     justifyContent: "center",
   },
   primaryButtonText: {
-    color: "#fff",
+    color: "#0B1F33",
     fontSize: 16,
     fontWeight: "700",
     letterSpacing: 0.1,
   },
   signupText: {
     textAlign: "center",
-    color: "#64748B",
+    color: "#E2E8F0",
     marginTop: 24,
     fontSize: 14,
     lineHeight: 20,
   },
   linkText: {
-    color: "#0284C7",
+    color: "#E7C875",
     fontWeight: "600",
   },
 });
