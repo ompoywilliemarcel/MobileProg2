@@ -12,6 +12,7 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import DarkRadialBackground from "../components/DarkRadialBackground";
 
 export default function LoginScreen() {
   const [email, setEmail] = useState("");
@@ -32,6 +33,7 @@ export default function LoginScreen() {
 
   return (
     <SafeAreaView style={styles.safeArea}>
+      <DarkRadialBackground />
       <KeyboardAvoidingView
         style={styles.container}
         behavior={Platform.OS === "ios" ? "padding" : undefined}
@@ -41,12 +43,19 @@ export default function LoginScreen() {
           keyboardShouldPersistTaps="handled"
         >
           <View style={styles.headerRow}>
-            <Text style={styles.brand}>OnlineShop</Text>
-            <Link href="/signup" asChild>
-              <TouchableOpacity style={styles.helpButton}>
-                <Text style={styles.helpText}>Sign up</Text>
-              </TouchableOpacity>
-            </Link>
+            <Text style={styles.brand}>Merch Store</Text>
+            <View style={styles.headerActions}>
+              <Link href="/" asChild>
+                <TouchableOpacity style={styles.helpButton}>
+                  <Text style={styles.helpText}>Products</Text>
+                </TouchableOpacity>
+              </Link>
+              <Link href="/signup" asChild>
+                <TouchableOpacity style={styles.helpButton}>
+                  <Text style={styles.helpText}>Sign up</Text>
+                </TouchableOpacity>
+              </Link>
+            </View>
           </View>
 
           <View style={styles.heroCard}>
@@ -106,7 +115,7 @@ export default function LoginScreen() {
           </View>
 
           <Text style={styles.signupText}>
-            New to OnlineShop?{" "}
+            New to Merch Store?{" "}
             <Link href="/signup" asChild>
               <Text style={styles.linkText}>Create an account</Text>
             </Link>
@@ -120,7 +129,7 @@ export default function LoginScreen() {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: "#0B1F33",
+    backgroundColor: "#061525",
   },
   container: {
     flex: 1,
@@ -136,6 +145,11 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
     marginBottom: 20,
+  },
+  headerActions: {
+    alignItems: "center",
+    flexDirection: "row",
+    gap: 8,
   },
   brand: {
     fontSize: 28,

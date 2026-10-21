@@ -8,15 +8,17 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { products } from '../data/products';
+import DarkRadialBackground from '../components/DarkRadialBackground';
 
 export default function HomeScreen() {
   return (
     <SafeAreaView style={styles.safeArea}>
+      <DarkRadialBackground />
       <ScrollView contentContainerStyle={styles.content}>
         <View style={styles.headerRow}>
           <View>
-            <Text style={styles.brand}>OnlineShop</Text>
-            <Text style={styles.eyebrow}>CURATED FOR EVERYDAY</Text>
+            <Text style={styles.brand}>Merch Store</Text>
+            <Text style={styles.eyebrow}>OFFICIAL COLLECTION</Text>
           </View>
           <Link href="/login" asChild>
             <TouchableOpacity style={styles.headerButton}>
@@ -29,16 +31,18 @@ export default function HomeScreen() {
           <View style={styles.badge}>
             <Text style={styles.badgeText}>Fresh arrivals</Text>
           </View>
-          <Text style={styles.heroTitle}>Find your next favorite</Text>
+          <Text style={styles.heroTitle}>Wear what you love.</Text>
           <Text style={styles.heroSubtitle}>
-            Thoughtful picks for your home and everyday life.
+            Shop the latest apparel and accessories from our merch collection.
           </Text>
         </View>
 
         <View style={styles.sectionHeading}>
           <View>
-            <Text style={styles.sectionTitle}>Discover</Text>
-            <Text style={styles.sectionSubtitle}>Find something you’ll love</Text>
+            <Text style={styles.sectionTitle}>The merch drop</Text>
+            <Text style={styles.sectionSubtitle}>
+              Fresh favorites, made to wear
+            </Text>
           </View>
           <Text style={styles.itemCount}>{products.length} items</Text>
         </View>
@@ -55,15 +59,25 @@ export default function HomeScreen() {
                 accessibilityRole="button"
                 accessibilityLabel={`View ${product.name}, ${product.price}`}
               >
-                <View style={[styles.productImage, { backgroundColor: product.color }]}>
+                <View
+                  style={[
+                    styles.productImage,
+                    { backgroundColor: product.color },
+                  ]}
+                >
+                  <View style={styles.artGlow} />
+                  <View style={styles.productShadow} />
+                  <View style={styles.productStage} />
                   <Text style={styles.productEmoji}>{product.emoji}</Text>
                   <View style={styles.productTag}>
-                    <Text style={styles.productTagText}>PICKED FOR YOU</Text>
+                    <Text style={styles.productTagText}>MERCH DROP</Text>
                   </View>
                 </View>
                 <View style={styles.productInfo}>
                   <Text style={styles.productCategory}>{product.category}</Text>
-                  <Text style={styles.productName} numberOfLines={2}>{product.name}</Text>
+                  <Text style={styles.productName} numberOfLines={2}>
+                    {product.name}
+                  </Text>
                   <View style={styles.productFooter}>
                     <Text style={styles.productPrice}>{product.price}</Text>
                     <View style={styles.addButton}>
@@ -89,7 +103,7 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#0B1F33',
+    backgroundColor: '#061525',
   },
   content: {
     flexGrow: 1,
@@ -198,19 +212,51 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     width: '48%',
     shadowColor: '#0B1F33',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.08,
-    shadowRadius: 9,
-    elevation: 3,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.2,
+    shadowRadius: 12,
+    elevation: 7,
   },
   productImage: {
     alignItems: 'center',
     justifyContent: 'center',
     height: 145,
+    overflow: 'hidden',
     position: 'relative',
+  },
+  artGlow: {
+    backgroundColor: 'rgba(255,255,255,0.10)',
+    borderRadius: 90,
+    height: 180,
+    position: 'absolute',
+    right: -48,
+    top: -94,
+    width: 180,
+  },
+  productShadow: {
+    backgroundColor: 'rgba(3,13,24,0.35)',
+    borderRadius: 60,
+    bottom: 22,
+    height: 17,
+    position: 'absolute',
+    width: 82,
+  },
+  productStage: {
+    backgroundColor: 'rgba(255,255,255,0.11)',
+    borderColor: 'rgba(255,255,255,0.18)',
+    borderRadius: 999,
+    borderWidth: 1,
+    bottom: 22,
+    height: 11,
+    position: 'absolute',
+    width: 94,
   },
   productEmoji: {
     fontSize: 67,
+    textShadowColor: 'rgba(0,0,0,0.35)',
+    textShadowOffset: { width: 2, height: 8 },
+    textShadowRadius: 8,
+    transform: [{ perspective: 500 }, { rotateY: '-9deg' }, { translateY: -7 }],
   },
   productTag: {
     backgroundColor: 'rgba(255,255,255,0.88)',

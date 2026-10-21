@@ -7,18 +7,16 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import DarkRadialBackground from "../components/DarkRadialBackground";
 
 export default function TermsScreen() {
   return (
     <SafeAreaView style={styles.safeArea}>
-      <View style={styles.backgroundDecor} pointerEvents="none">
-        <View style={styles.orbOne} />
-        <View style={styles.orbTwo} />
-      </View>
+      <DarkRadialBackground />
 
       <ScrollView contentContainerStyle={styles.content}>
         <View style={styles.headerRow}>
-          <Text style={styles.brand}>OnlineShop</Text>
+          <Text style={styles.brand}>Merch Store</Text>
           <Link href="/signup" asChild>
             <TouchableOpacity style={styles.backButton}>
               <Text style={styles.backButtonText}>Back</Text>
@@ -84,29 +82,7 @@ export default function TermsScreen() {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: "#0B1F33",
-  },
-  backgroundDecor: {
-    ...StyleSheet.absoluteFill,
-    overflow: "hidden",
-  },
-  orbOne: {
-    position: "absolute",
-    width: 220,
-    height: 220,
-    borderRadius: 110,
-    backgroundColor: "rgba(217,180,91,0.12)",
-    top: -60,
-    right: -30,
-  },
-  orbTwo: {
-    position: "absolute",
-    width: 180,
-    height: 180,
-    borderRadius: 90,
-    backgroundColor: "rgba(217,180,91,0.10)",
-    bottom: 90,
-    left: -40,
+    backgroundColor: "#061525",
   },
   content: {
     flexGrow: 1,

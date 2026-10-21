@@ -11,6 +11,7 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import DarkRadialBackground from '../components/DarkRadialBackground';
 
 export default function HomeScreen() {
   const router = useRouter();
@@ -39,6 +40,7 @@ export default function HomeScreen() {
 
   return (
     <SafeAreaView style={styles.safeArea}>
+      <DarkRadialBackground />
       <KeyboardAvoidingView
         style={styles.container}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
@@ -48,7 +50,7 @@ export default function HomeScreen() {
           keyboardShouldPersistTaps="handled"
         >
           <View style={styles.headerRow}>
-            <Text style={styles.brand}>OnlineShop</Text>
+            <Text style={styles.brand}>Merch Store</Text>
             <Link href="/" asChild>
               <TouchableOpacity style={styles.helpButton}>
                 <Text style={styles.helpText}>Shop products</Text>
@@ -178,7 +180,7 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#0B1F33',
+    backgroundColor: '#061525',
   },
   container: {
     flex: 1,

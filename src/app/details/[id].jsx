@@ -8,6 +8,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { products } from '../../data/products';
+import DarkRadialBackground from '../../components/DarkRadialBackground';
 
 export default function ProductDetailsScreen() {
   const { id } = useLocalSearchParams();
@@ -26,6 +27,7 @@ export default function ProductDetailsScreen() {
 
   return (
     <SafeAreaView style={styles.safeArea}>
+      <DarkRadialBackground />
       <ScrollView contentContainerStyle={styles.content}>
         <TouchableOpacity
           style={styles.backButton}
@@ -38,8 +40,12 @@ export default function ProductDetailsScreen() {
 
         {product ? (
           <View style={styles.card}>
-            <View style={styles.productNumber}>
-              <Text style={styles.productNumberText}>{product.id}</Text>
+            <View style={[styles.productImage, { backgroundColor: product.color }]}>
+              <View style={styles.artGlow} />
+              <View style={styles.productShadow} />
+              <View style={styles.productStage} />
+              <Text style={styles.productEmoji}>{product.emoji}</Text>
+              <Text style={styles.imageLabel}>OFFICIAL MERCH</Text>
             </View>
             <View style={styles.badge}>
               <Text style={styles.badgeText}>{product.category}</Text>
@@ -51,14 +57,31 @@ export default function ProductDetailsScreen() {
             <Text style={styles.sectionLabel}>Product details</Text>
             <Text style={styles.description}>{product.description}</Text>
 
+            <Text style={styles.sectionLabel}>Color</Text>
+            <View style={styles.colorRow}>
+              <View style={[styles.colorSwatch, { backgroundColor: product.color }]} />
+              <Text style={styles.colorName}>{product.colorName}</Text>
+            </View>
+
+            <Text style={styles.sectionLabel}>Available sizes</Text>
+            <View style={styles.sizeRow}>
+              {product.sizes.map((size) => (
+                <View key={size} style={styles.sizeChip}>
+                  <Text style={styles.sizeText}>{size}</Text>
+                </View>
+              ))}
+            </View>
+
             <View style={styles.idPanel}>
-              <Text style={styles.idLabel}>PRODUCT ID</Text>
-              <Text style={styles.idValue}>{product.id}</Text>
+              <Text style={styles.idLabel}>MERCH SKU</Text>
+              <Text style={styles.idValue}>
+                MERCH-{product.id.padStart(3, '0')}
+              </Text>
             </View>
           </View>
         ) : (
           <View style={styles.card}>
-            <Text style={styles.title}>Product not found</Text>
+            <Text style={styles.title}>Merch item not found</Text>
             <Text style={styles.description}>
               There is no product with ID {productId || 'unknown'}.
             </Text>
@@ -77,7 +100,7 @@ export default function ProductDetailsScreen() {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#0B1F33',
+    backgroundColor: '#061525',
   },
   content: {
     flexGrow: 1,
@@ -99,22 +122,58 @@ const styles = StyleSheet.create({
     borderColor: '#D9B45B',
     borderRadius: 24,
     borderWidth: 1,
-    padding: 23,
+    padding: 18,
   },
-  productNumber: {
+  productImage: {
     alignItems: 'center',
-    alignSelf: 'flex-start',
-    backgroundColor: '#D9B45B',
     borderRadius: 18,
-    height: 68,
+    height: 220,
     justifyContent: 'center',
-    marginBottom: 22,
-    width: 68,
+    marginBottom: 20,
+    overflow: 'hidden',
+    position: 'relative',
   },
-  productNumberText: {
-    color: '#0B1F33',
-    fontSize: 26,
+  artGlow: {
+    backgroundColor: 'rgba(255,255,255,0.10)',
+    borderRadius: 150,
+    height: 300,
+    position: 'absolute',
+    right: -65,
+    top: -155,
+    width: 300,
+  },
+  productShadow: {
+    backgroundColor: 'rgba(3,13,24,0.4)',
+    borderRadius: 100,
+    bottom: 42,
+    height: 24,
+    position: 'absolute',
+    width: 145,
+  },
+  productStage: {
+    backgroundColor: 'rgba(255,255,255,0.12)',
+    borderColor: 'rgba(255,255,255,0.22)',
+    borderRadius: 999,
+    borderWidth: 1,
+    bottom: 42,
+    height: 16,
+    position: 'absolute',
+    width: 166,
+  },
+  productEmoji: {
+    fontSize: 106,
+    textShadowColor: 'rgba(0,0,0,0.4)',
+    textShadowOffset: { width: 3, height: 12 },
+    textShadowRadius: 12,
+    transform: [{ perspective: 700 }, { rotateY: '-8deg' }, { translateY: -12 }],
+  },
+  imageLabel: {
+    bottom: 12,
+    color: '#FFFFFF',
+    fontSize: 10,
     fontWeight: '800',
+    letterSpacing: 1.2,
+    position: 'absolute',
   },
   badge: {
     alignSelf: 'flex-start',
@@ -158,6 +217,45 @@ const styles = StyleSheet.create({
     color: '#526579',
     fontSize: 15,
     lineHeight: 23,
+    marginBottom: 20,
+  },
+  colorRow: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    marginBottom: 20,
+  },
+  colorSwatch: {
+    borderColor: '#D9B45B',
+    borderRadius: 999,
+    borderWidth: 2,
+    height: 24,
+    marginRight: 9,
+    width: 24,
+  },
+  colorName: {
+    color: '#526579',
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  sizeRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  sizeChip: {
+    alignItems: 'center',
+    backgroundColor: '#F8F7F2',
+    borderColor: '#D9B45B',
+    borderRadius: 9,
+    borderWidth: 1,
+    minWidth: 44,
+    paddingHorizontal: 12,
+    paddingVertical: 9,
+  },
+  sizeText: {
+    color: '#0B1F33',
+    fontSize: 13,
+    fontWeight: '700',
   },
   idPanel: {
     backgroundColor: '#F8F7F2',
