@@ -17,17 +17,17 @@ export default function HomeScreen() {
       <DarkRadialBackground />
       <ScrollView contentContainerStyle={styles.content}>
         <View style={styles.headerRow}>
-          <View>
+          <View style={styles.brandRow}>
             <Image
-               source={require('../../assets/products/logo.png')}
-               style={styles.logo}
-               resizeMode="contain"
-            /> 
+              source={require('../../assets/products/logo.png')}
+              style={styles.logo}
+              resizeMode="contain"
+            />
             <View>
-               <Text style={styles.brand}>USTP Wear</Text>
-               <Text style={styles.eyebrow}>OFFICIAL COLLECTION</Text>
+              <Text style={styles.brand}>USTP Wear</Text>
+              <Text style={styles.eyebrow}>OFFICIAL COLLECTION</Text>
             </View>
-        </View>
+          </View>
            
           <Link href="/login" asChild>
             <TouchableOpacity style={styles.headerButton}>
