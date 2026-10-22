@@ -34,7 +34,6 @@ export default function HomeScreen() {
       return;
     }
 
-    setErrorMessage('');
     router.push('/login');
   };
 
