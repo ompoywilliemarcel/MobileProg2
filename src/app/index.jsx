@@ -29,7 +29,7 @@ export default function HomeScreen() {
             </View>
           </View>
            
-          <Link href="/login" asChild>
+          <Link href="/access" asChild>
             <TouchableOpacity style={styles.headerButton}>
               <Text style={styles.headerButtonText}>Login</Text>
             </TouchableOpacity>
@@ -58,13 +58,12 @@ export default function HomeScreen() {
 
         <View style={styles.productList}>
           {products.map((product) => (
-            <Link
-              key={product.id}
-              href={{ pathname: '/details/[id]', params: { id: product.id } }}
-              asChild
-            >
+            <View key={product.id} style={styles.productCard}>
+              <Link
+                href={{ pathname: '/details/[id]', params: { id: product.id } }}
+                asChild
+              >
               <TouchableOpacity
-                style={styles.productCard}
                 accessibilityRole="button"
                 accessibilityLabel={`View ${product.name}, ${product.price}`}
               >
@@ -93,17 +92,21 @@ export default function HomeScreen() {
                   </Text>
                   <View style={styles.productFooter}>
                     <Text style={styles.productPrice}>{product.price}</Text>
-                    <View style={styles.addButton}>
-                      <Text style={styles.addButtonText}>›</Text>
-                    </View>
+                    <Text style={styles.detailsHint}>Details ›</Text>
                   </View>
                 </View>
               </TouchableOpacity>
-            </Link>
+              </Link>
+              <Link href="/access" asChild>
+                <TouchableOpacity style={styles.addCartButton} accessibilityRole="button" accessibilityLabel={`Add ${product.name} to cart`}>
+                  <Text style={styles.addCartText}>Add to cart</Text>
+                </TouchableOpacity>
+              </Link>
+            </View>
           ))}
         </View>
 
-        <Link href="/signup" asChild>
+        <Link href="/access" asChild>
           <TouchableOpacity style={styles.signupLink}>
             <Text style={styles.signupLinkText}>Create an account</Text>
           </TouchableOpacity>
@@ -313,20 +316,9 @@ const styles = StyleSheet.create({
     fontSize: 17,
     fontWeight: '800',
   },
-  addButton: {
-    alignItems: 'center',
-    backgroundColor: '#D9B45B',
-    borderRadius: 999,
-    height: 28,
-    justifyContent: 'center',
-    width: 28,
-  },
-  addButtonText: {
-    color: '#0B1F33',
-    fontSize: 22,
-    fontWeight: '600',
-    lineHeight: 25,
-  },
+  detailsHint: { color: '#9A741E', fontSize: 11, fontWeight: '700' },
+  addCartButton: { alignItems: 'center', backgroundColor: '#D9B45B', marginHorizontal: 10, marginBottom: 10, borderRadius: 10, paddingVertical: 10 },
+  addCartText: { color: '#0B1F33', fontSize: 12, fontWeight: '800' },
   signupLink: {
     alignSelf: 'center',
     padding: 14,

@@ -1,4 +1,4 @@
-import { Link } from "expo-router";
+import { Link, useLocalSearchParams, useRouter } from "expo-router";
 import { useState } from "react";
 import {
   Alert,
@@ -13,111 +13,119 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import DarkRadialBackground from "../components/DarkRadialBackground";
+import { demoAccounts } from "../data/demoStore";
 
 export default function LoginScreen() {
+  const router = useRouter();
+  const { audience: requestedAudience } = useLocalSearchParams();
+  const audience = requestedAudience === "store" ? "store" : "student";
+  const isStore = audience === "store";
+  const [idNumber, setIdNumber] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
-
   const handleLogin = () => {
-    if (!email.trim() || !password) {
-      Alert.alert(
-        "Missing details",
-        "Enter your email and password to log in.",
+    const validId = isStore
+      ? /^32\d{5}$/.test(idNumber.trim())
+      : /^202\d{7}$/.test(idNumber.trim());
+    if (!validId)
+      return Alert.alert(
+        "Incomplete ID number",
+        isStore
+          ? "Enter your complete store ID (32 followed by 5 digits)."
+          : "Enter your complete student ID (202 followed by 7 digits).",
       );
-      return;
-    }
-
-    Alert.alert("Ready to log in", "Your login details have been entered.");
+    const account = demoAccounts.find(
+      (item) =>
+        item.email.toLowerCase() === email.trim().toLowerCase() &&
+        item.password === password &&
+        item.id === idNumber.trim() &&
+        (item.audience === audience ||
+          (audience === "store" && item.role === "admin")),
+    );
+    if (!account)
+      return Alert.alert(
+        "Login failed",
+        "Check the username, ID number, and password, then try again.",
+      );
+    router.replace({
+      pathname: "/dashboard",
+      params: { role: account.role, name: account.name },
+    });
   };
-
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <SafeAreaView style={styles.safe}>
       <DarkRadialBackground />
       <KeyboardAvoidingView
-        style={styles.container}
+        style={{ flex: 1 }}
         behavior={Platform.OS === "ios" ? "padding" : undefined}
       >
         <ScrollView
-          contentContainerStyle={styles.scrollContent}
+          contentContainerStyle={styles.content}
           keyboardShouldPersistTaps="handled"
         >
-          <View style={styles.headerRow}>
-            <Text style={styles.brand}>Merch Store</Text>
-            <View style={styles.headerActions}>
-              <Link href="/" asChild>
-                <TouchableOpacity style={styles.helpButton}>
-                  <Text style={styles.helpText}>Products</Text>
-                </TouchableOpacity>
-              </Link>
-              <Link href="/signup" asChild>
-                <TouchableOpacity style={styles.helpButton}>
-                  <Text style={styles.helpText}>Sign up</Text>
-                </TouchableOpacity>
-              </Link>
-            </View>
+          <View style={styles.header}>
+            <Text style={styles.brand}>USTP Wear</Text>
+            <Link href="/access" style={styles.link}>
+              Change account type
+            </Link>
           </View>
-
-          <View style={styles.heroCard}>
-            <View style={styles.badge}>
-              <Text style={styles.badgeText}>Welcome back</Text>
-            </View>
-            <Text style={styles.title}>Log in</Text>
+          <View style={styles.hero}>
+            <Text style={styles.eyebrow}>WELCOME BACK</Text>
+            <Text style={styles.title}>
+              {isStore ? "USTP Store login" : "Student login"}
+            </Text>
             <Text style={styles.subtitle}>
-              Continue shopping your favorite essentials
+              {isStore
+                ? "Manage merch, orders, and store reports."
+                : "Shop merch, reserve pickup, and track your orders."}
             </Text>
           </View>
-
-          <View style={styles.formCard}>
-            <Text style={styles.label}>Email</Text>
+          <View style={styles.card}>
+            <Text style={styles.label}>
+              {isStore ? "USTP Store ID" : "Student ID"}
+            </Text>
             <TextInput
               style={styles.input}
-              placeholder="you@example.com"
-              placeholderTextColor="#8B8CA7"
+              placeholder={isStore ? "32_ _ _ _ _ " : "202_ _ _ _ _ _ _"}
+              placeholderTextColor="#8290A0"
+              value={idNumber}
+              onChangeText={(value) =>
+                setIdNumber(value.replace(/\D/g, "").slice(0, isStore ? 7 : 10))
+              }
+              keyboardType="number-pad"
+              maxLength={isStore ? 7 : 10}
+            />
+            <Text style={styles.label}>Username or email</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="Enter username"
+              placeholderTextColor="#8290A0"
               value={email}
               onChangeText={setEmail}
-              keyboardType="email-address"
               autoCapitalize="none"
-              autoComplete="email"
+              autoComplete="username"
             />
-
             <Text style={styles.label}>Password</Text>
-            <View style={styles.passwordWrap}>
-              <TextInput
-                style={[styles.input, styles.passwordInput]}
-                placeholder="Enter your password"
-                placeholderTextColor="#8B8CA7"
-                value={password}
-                onChangeText={setPassword}
-                secureTextEntry={!showPassword}
-                autoComplete="password"
-              />
-              <TouchableOpacity
-                style={styles.showButton}
-                onPress={() => setShowPassword((value) => !value)}
-                accessibilityRole="button"
-                accessibilityLabel={
-                  showPassword ? "Hide password" : "Show password"
-                }
-              >
-                <Text style={styles.showButtonText}>
-                  {showPassword ? "Hide" : "Show"}
-                </Text>
-              </TouchableOpacity>
-            </View>
-
-            <TouchableOpacity
-              style={styles.primaryButton}
-              onPress={handleLogin}
-            >
-              <Text style={styles.primaryButtonText}>Log in</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="Enter password"
+              placeholderTextColor="#8290A0"
+              value={password}
+              onChangeText={setPassword}
+              secureTextEntry
+              autoComplete="password"
+            />
+            <TouchableOpacity style={styles.button} onPress={handleLogin}>
+              <Text style={styles.buttonText}>Continue</Text>
             </TouchableOpacity>
           </View>
-
-          <Text style={styles.signupText}>
-            New to Merch Store?{" "}
-            <Link href="/signup" asChild>
-              <Text style={styles.linkText}>Create an account</Text>
+          <Text style={styles.signup}>
+            New here?{" "}
+            <Link
+              href={{ pathname: "/signup", params: { audience } }}
+              style={styles.link}
+            >
+              Create an account
             </Link>
           </Text>
         </ScrollView>
@@ -127,161 +135,66 @@ export default function LoginScreen() {
 }
 
 const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: "#061525",
-  },
-  container: {
-    flex: 1,
-  },
-  scrollContent: {
-    flexGrow: 1,
-    paddingHorizontal: 24,
-    paddingTop: 12,
-    paddingBottom: 32,
-  },
-  headerRow: {
+  safe: { flex: 1, backgroundColor: "#061525" },
+  content: { padding: 22, paddingBottom: 36, flexGrow: 1 },
+  header: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: 20,
+    marginBottom: 26,
   },
-  headerActions: {
-    alignItems: "center",
-    flexDirection: "row",
-    gap: 8,
-  },
-  brand: {
-    fontSize: 28,
-    fontWeight: "700",
-    color: "#FFFFFF",
-    letterSpacing: -0.8,
-  },
-  helpButton: {
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 999,
-    backgroundColor: "#D9B45B",
-    borderWidth: 1,
-    borderColor: "#E7C875",
-  },
-  helpText: {
-    color: "#0B1F33",
-    fontSize: 12,
-    fontWeight: "600",
-  },
-  heroCard: {
+  brand: { color: "#FFF", fontSize: 24, fontWeight: "800" },
+  link: { color: "#9A741E", fontWeight: "700" },
+  hero: {
     backgroundColor: "#183653",
-    borderRadius: 28,
-    padding: 24,
-    marginBottom: 22,
-    minHeight: 180,
-    justifyContent: "center",
+    borderRadius: 24,
+    padding: 23,
+    marginBottom: 18,
   },
-  badge: {
-    alignSelf: "flex-start",
-    backgroundColor: "#D9B45B",
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 999,
-    marginBottom: 16,
-  },
-  badgeText: {
-    color: "#0B1F33",
-    fontWeight: "600",
+  eyebrow: {
+    color: "#D9B45B",
+    fontWeight: "800",
     fontSize: 11,
-    letterSpacing: 0.2,
+    letterSpacing: 1.4,
   },
   title: {
-    color: "#FFFFFF",
-    fontSize: 34,
-    fontWeight: "700",
-    letterSpacing: -0.8,
+    color: "#FFF",
+    fontSize: 29,
+    lineHeight: 35,
+    fontWeight: "800",
+    marginTop: 12,
   },
-  subtitle: {
-    color: "#E2E8F0",
-    marginTop: 8,
-    fontSize: 15,
-    lineHeight: 22,
-  },
-  formCard: {
-    backgroundColor: "#ffffff",
-    borderRadius: 24,
+  subtitle: { color: "#D4DEE8", fontSize: 14, lineHeight: 21, marginTop: 9 },
+  card: {
+    backgroundColor: "#FFF",
+    borderRadius: 22,
     padding: 20,
     borderWidth: 1,
     borderColor: "#D9B45B",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.1,
-    shadowRadius: 20,
-    elevation: 6,
   },
   label: {
     color: "#0B1F33",
-    fontSize: 14,
-    fontWeight: "600",
-    marginBottom: 8,
-    marginTop: 8,
+    fontSize: 13,
+    fontWeight: "700",
+    marginTop: 12,
+    marginBottom: 7,
   },
   input: {
     backgroundColor: "#F8F7F2",
-    borderRadius: 12,
     borderWidth: 1,
     borderColor: "#D8D2C5",
-    paddingHorizontal: 14,
-    paddingVertical: 14,
+    borderRadius: 12,
+    padding: 14,
+    color: "#0B1F33",
     fontSize: 15,
-    fontWeight: "400",
-    color: "#0B1F33",
-    marginBottom: 14,
   },
-  passwordWrap: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#F8F7F2",
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: "#D8D2C5",
-    marginBottom: 18,
-    paddingRight: 10,
-  },
-  passwordInput: {
-    flex: 1,
-    borderWidth: 0,
-    backgroundColor: "transparent",
-    marginBottom: 0,
-  },
-  showButton: {
-    paddingHorizontal: 10,
-    paddingVertical: 10,
-  },
-  showButtonText: {
-    color: "#9A741E",
-    fontWeight: "600",
-    fontSize: 12,
-  },
-  primaryButton: {
+  button: {
     backgroundColor: "#D9B45B",
-    borderRadius: 14,
-    paddingVertical: 16,
+    borderRadius: 13,
     alignItems: "center",
-    justifyContent: "center",
+    padding: 15,
+    marginTop: 18,
   },
-  primaryButtonText: {
-    color: "#0B1F33",
-    fontSize: 16,
-    fontWeight: "700",
-    letterSpacing: 0.1,
-  },
-  signupText: {
-    textAlign: "center",
-    color: "#E2E8F0",
-    marginTop: 24,
-    fontSize: 14,
-    lineHeight: 20,
-  },
-  linkText: {
-    color: "#E7C875",
-    fontWeight: "600",
-  },
+  buttonText: { color: "#0B1F33", fontWeight: "800", fontSize: 15 },
+  signup: { color: "#E2E8F0", textAlign: "center", marginTop: 22 },
 });

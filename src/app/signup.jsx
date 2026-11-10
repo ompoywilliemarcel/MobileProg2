@@ -1,5 +1,5 @@
-import { Link, useRouter } from 'expo-router';
-import { useState } from 'react';
+import { Link, useLocalSearchParams, useRouter } from "expo-router";
+import { useState } from "react";
 import {
   KeyboardAvoidingView,
   Platform,
@@ -9,32 +9,80 @@ import {
   TextInput,
   TouchableOpacity,
   View,
-} from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import DarkRadialBackground from '../components/DarkRadialBackground';
+} from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import DarkRadialBackground from "../components/DarkRadialBackground";
+import { demoAccounts, store } from "../data/demoStore";
 
 export default function HomeScreen() {
   const router = useRouter();
-  const [fullName, setFullName] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
+  const { audience: requestedAudience } = useLocalSearchParams();
+  const audience = requestedAudience === "store" ? "store" : "student";
+  const isStore = audience === "store";
+  const [fullName, setFullName] = useState("");
+  const [email, setEmail] = useState("");
+  const [idNumber, setIdNumber] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [agreedToTerms, setAgreedToTerms] = useState(false);
-  const [errorMessage, setErrorMessage] = useState('');
+  const [errorMessage, setErrorMessage] = useState("");
 
   const handleCreateAccount = () => {
     if (!fullName || !email || !password || !confirmPassword) {
-      setErrorMessage('Please fill out all required fields.');
+      setErrorMessage("Please fill out all required fields.");
       return;
     }
 
     if (password !== confirmPassword) {
-      setErrorMessage('Password and Confirm Password do not match.');
+      setErrorMessage("Password and Confirm Password do not match.");
       return;
     }
 
-    router.push('/login');
+    const validId = isStore
+      ? /^32\d{5}$/.test(idNumber.trim())
+      : /^202\d{7}$/.test(idNumber.trim());
+    if (!validId) {
+      setErrorMessage(
+        isStore
+          ? "Incomplete ID number. Enter 32 followed by 5 digits."
+          : "Incomplete ID number. Enter 202 followed by 7 digits.",
+      );
+      return;
+    }
+
+    const normalizedEmail = email.trim().toLowerCase();
+    if (
+      demoAccounts.some(
+        (account) => account.email.toLowerCase() === normalizedEmail,
+      )
+    ) {
+      setErrorMessage("An account with this email already exists.");
+      return;
+    }
+
+    const role = isStore ? "user" : "customer";
+    demoAccounts.push({
+      email: normalizedEmail,
+      password,
+      role,
+      audience,
+      id: idNumber.trim(),
+      name: fullName.trim(),
+    });
+    store.users.unshift({
+      name: fullName.trim(),
+      email: normalizedEmail,
+      role,
+      id: idNumber.trim(),
+      joined: new Date().toLocaleDateString("en-PH", {
+        month: "short",
+        day: "2-digit",
+        year: "numeric",
+      }),
+    });
+
+    router.push({ pathname: "/login", params: { audience } });
   };
 
   return (
@@ -42,7 +90,7 @@ export default function HomeScreen() {
       <DarkRadialBackground />
       <KeyboardAvoidingView
         style={styles.container}
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
       >
         <ScrollView
           contentContainerStyle={styles.scrollContent}
@@ -61,8 +109,14 @@ export default function HomeScreen() {
             <View style={styles.badge}>
               <Text style={styles.badgeText}>Fresh arrivals</Text>
             </View>
-            <Text style={styles.title}>Create account</Text>
-            <Text style={styles.subtitle}>Join now and shop your favorite essentials</Text>
+            <Text style={styles.title}>
+              Create {isStore ? "store" : "student"} account
+            </Text>
+            <Text style={styles.subtitle}>
+              {isStore
+                ? "Set up your USTP Store access."
+                : "Join and shop your favorite campus merch."}
+            </Text>
           </View>
 
           <View style={styles.formCard}>
@@ -87,6 +141,21 @@ export default function HomeScreen() {
               autoCapitalize="none"
             />
 
+            <Text style={styles.label}>
+              {isStore ? "USTP Store ID" : "Student ID"}
+            </Text>
+            <TextInput
+              style={styles.input}
+              placeholder={isStore ? "32_ _ _ _ _ " : "202_ _ _ _ _ _ _"}
+              placeholderTextColor="#8B8CA7"
+              value={idNumber}
+              onChangeText={(value) =>
+                setIdNumber(value.replace(/\D/g, "").slice(0, isStore ? 7 : 10))
+              }
+              keyboardType="number-pad"
+              maxLength={isStore ? 7 : 10}
+            />
+
             <Text style={styles.label}>Password</Text>
             <View style={styles.passwordWrap}>
               <TextInput
@@ -101,7 +170,9 @@ export default function HomeScreen() {
                 style={styles.showButton}
                 onPress={() => setShowPassword((value) => !value)}
               >
-                <Text style={styles.showButtonText}>{showPassword ? 'Hide' : 'Show'}</Text>
+                <Text style={styles.showButtonText}>
+                  {showPassword ? "Hide" : "Show"}
+                </Text>
               </TouchableOpacity>
             </View>
 
@@ -115,7 +186,9 @@ export default function HomeScreen() {
               secureTextEntry={!showPassword}
             />
 
-            {errorMessage ? <Text style={styles.errorText}>{errorMessage}</Text> : null}
+            {errorMessage ? (
+              <Text style={styles.errorText}>{errorMessage}</Text>
+            ) : null}
 
             <View style={styles.rowBetween}>
               <View style={styles.rememberWrap}>
@@ -124,12 +197,19 @@ export default function HomeScreen() {
                   accessibilityRole="checkbox"
                   accessibilityState={{ checked: agreedToTerms }}
                 >
-                  <View style={[styles.checkbox, agreedToTerms && styles.checkboxChecked]}>
-                    {agreedToTerms && <Text style={styles.checkboxMark}>✓</Text>}
+                  <View
+                    style={[
+                      styles.checkbox,
+                      agreedToTerms && styles.checkboxChecked,
+                    ]}
+                  >
+                    {agreedToTerms && (
+                      <Text style={styles.checkboxMark}>✓</Text>
+                    )}
                   </View>
                 </TouchableOpacity>
                 <Text style={styles.rememberText}>
-                  I agree to{' '}
+                  I agree to{" "}
                   <Link href="/terms" asChild>
                     <Text style={styles.terms}>Terms & Conditions</Text>
                   </Link>
@@ -138,15 +218,18 @@ export default function HomeScreen() {
             </View>
 
             <TouchableOpacity
-              style={[styles.primaryButton, !agreedToTerms && styles.primaryButtonDisabled]}
+              style={[
+                styles.primaryButton,
+                !agreedToTerms && styles.primaryButtonDisabled,
+              ]}
               disabled={!agreedToTerms}
               onPress={handleCreateAccount}
               accessibilityRole="button"
               accessibilityState={{ disabled: !agreedToTerms }}
               accessibilityHint={
                 agreedToTerms
-                  ? 'Creates your account'
-                  : 'Agree to the Terms and Conditions to create an account'
+                  ? "Creates your account"
+                  : "Agree to the Terms and Conditions to create an account"
               }
             >
               <Text style={styles.primaryButtonText}>Create account</Text>
@@ -165,8 +248,8 @@ export default function HomeScreen() {
           </View>
 
           <Text style={styles.signupText}>
-            Already have an account?{' '}
-            <Link href="/login" asChild>
+            Already have an account?{" "}
+            <Link href={{ pathname: "/login", params: { audience } }} asChild>
               <Text style={styles.linkText}>Log in</Text>
             </Link>
           </Text>
@@ -179,7 +262,7 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#061525',
+    backgroundColor: "#061525",
   },
   container: {
     flex: 1,
@@ -191,110 +274,110 @@ const styles = StyleSheet.create({
     paddingBottom: 32,
   },
   headerRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     marginBottom: 20,
   },
   brand: {
     fontSize: 28,
-    fontWeight: '700',
-    color: '#FFFFFF',
+    fontWeight: "700",
+    color: "#FFFFFF",
     letterSpacing: -0.8,
-    fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif"
+    fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
   },
   helpButton: {
     paddingHorizontal: 12,
     paddingVertical: 8,
     borderRadius: 999,
-    backgroundColor: '#D9B45B',
+    backgroundColor: "#D9B45B",
     borderWidth: 1,
-    borderColor: '#E7C875',
+    borderColor: "#E7C875",
   },
   helpText: {
-    color: '#0B1F33',
+    color: "#0B1F33",
     fontSize: 12,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   heroCard: {
-    backgroundColor: '#183653',
+    backgroundColor: "#183653",
     borderRadius: 28,
     padding: 24,
     marginBottom: 22,
     minHeight: 180,
-    justifyContent: 'center',
+    justifyContent: "center",
   },
   badge: {
-    alignSelf: 'flex-start',
-    backgroundColor: '#D9B45B',
+    alignSelf: "flex-start",
+    backgroundColor: "#D9B45B",
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 999,
     marginBottom: 16,
   },
   badgeText: {
-    color: '#0B1F33',
-    fontWeight: '600',
+    color: "#0B1F33",
+    fontWeight: "600",
     fontSize: 11,
     letterSpacing: 0.2,
   },
   title: {
-    color: '#FFFFFF',
+    color: "#FFFFFF",
     fontSize: 34,
-    fontWeight: '700',
+    fontWeight: "700",
     letterSpacing: -0.8,
   },
   subtitle: {
-    color: '#E2E8F0',
+    color: "#E2E8F0",
     marginTop: 8,
     fontSize: 15,
     lineHeight: 22,
   },
   formCard: {
-    backgroundColor: '#ffffff',
+    backgroundColor: "#ffffff",
     borderRadius: 24,
     padding: 20,
     borderWidth: 1,
-    borderColor: '#D9B45B',
-    shadowColor: '#000',
+    borderColor: "#D9B45B",
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 10 },
     shadowOpacity: 0.1,
     shadowRadius: 20,
     elevation: 6,
   },
   label: {
-    color: '#0B1F33',
+    color: "#0B1F33",
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: "600",
     marginBottom: 8,
     marginTop: 8,
   },
   input: {
-    backgroundColor: '#F8F7F2',
+    backgroundColor: "#F8F7F2",
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#D8D2C5',
+    borderColor: "#D8D2C5",
     paddingHorizontal: 14,
     paddingVertical: 14,
     fontSize: 15,
-    fontWeight: '400',
-    color: '#0B1F33',
+    fontWeight: "400",
+    color: "#0B1F33",
     marginBottom: 14,
   },
   passwordWrap: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#F8F7F2',
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#F8F7F2",
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#D8D2C5',
+    borderColor: "#D8D2C5",
     marginBottom: 12,
     paddingRight: 10,
   },
   passwordInput: {
     flex: 1,
     borderWidth: 0,
-    backgroundColor: 'transparent',
+    backgroundColor: "transparent",
     marginBottom: 0,
   },
   showButton: {
@@ -302,111 +385,110 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
   },
   showButtonText: {
-    color: '#9A741E',
-    fontWeight: '600',
+    color: "#9A741E",
+    fontWeight: "600",
     fontSize: 12,
   },
   rowBetween: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
     marginTop: 6,
     marginBottom: 18,
   },
   rememberWrap: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
   },
   checkbox: {
     width: 16,
     height: 16,
     borderRadius: 5,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: "#FFFFFF",
     borderWidth: 1,
-    borderColor: '#94A3B8',
+    borderColor: "#94A3B8",
     marginRight: 8,
   },
   checkboxChecked: {
-    backgroundColor: '#D9B45B',
-    borderColor: '#D9B45B',
+    backgroundColor: "#D9B45B",
+    borderColor: "#D9B45B",
   },
   checkboxMark: {
-    color: '#0B1F33',
+    color: "#0B1F33",
     fontSize: 12,
-    fontWeight: '700',
+    fontWeight: "700",
     lineHeight: 14,
-    textAlign: 'center',
+    textAlign: "center",
   },
   rememberText: {
-    color: '#526579',
+    color: "#526579",
     fontSize: 12,
     lineHeight: 18,
   },
   linkText: {
-    color: '#9A741E',
-    fontWeight: '600',
+    color: "#9A741E",
+    fontWeight: "600",
     fontSize: 13,
   },
   primaryButton: {
-    backgroundColor: '#D9B45B',
+    backgroundColor: "#D9B45B",
     borderRadius: 14,
     paddingVertical: 16,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
     marginBottom: 18,
   },
   primaryButtonDisabled: {
-    backgroundColor: '#B8A778',
+    backgroundColor: "#B8A778",
     opacity: 0.65,
   },
   primaryButtonText: {
-    color: '#0B1F33',
+    color: "#0B1F33",
     fontSize: 16,
-    fontWeight: '700',
+    fontWeight: "700",
     letterSpacing: 0.1,
   },
   orText: {
-    textAlign: 'center',
-    color: '#526579',
+    textAlign: "center",
+    color: "#526579",
     fontSize: 12,
-    fontWeight: '500',
+    fontWeight: "500",
     marginBottom: 14,
   },
   socialRow: {
-    flexDirection: 'row',
-    justifyContent: 'center',
+    flexDirection: "row",
+    justifyContent: "center",
     gap: 12,
   },
   socialButton: {
     width: 50,
     height: 50,
     borderRadius: 14,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: "#FFFFFF",
     borderWidth: 1,
-    borderColor: '#D8D2C5',
-    alignItems: 'center',
-    justifyContent: 'center',
+    borderColor: "#D8D2C5",
+    alignItems: "center",
+    justifyContent: "center",
   },
   socialText: {
-    color: '#0B1F33',
+    color: "#0B1F33",
     fontSize: 22,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   signupText: {
-    textAlign: 'center',
-    color: '#526579',
+    textAlign: "center",
+    color: "#526579",
     marginTop: 24,
     fontSize: 14,
     lineHeight: 20,
   },
   terms: {
-    color: '#9A741E',
-    fontWeight: '600',
+    color: "#9A741E",
+    fontWeight: "600",
   },
   errorText: {
-    color: '#DC2626',
+    color: "#DC2626",
     fontSize: 13,
     marginBottom: 8,
   },
-  
 });

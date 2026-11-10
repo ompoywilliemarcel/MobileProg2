@@ -1,4 +1,5 @@
 import { Link, useLocalSearchParams, useRouter } from 'expo-router';
+import { useState } from 'react';
 import {
   Image,
   ScrollView,
@@ -9,15 +10,16 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import DarkRadialBackground from '../../components/DarkRadialBackground';
-import { products } from '../../data/products';
+import { store } from '../../data/demoStore';
 
 export default function ProductDetailsScreen() {
-  const { id } = useLocalSearchParams();
+  const { id, audience, name } = useLocalSearchParams();
   const productId = Array.isArray(id) ? id[0] : id;
-  
-  // ✅ FIX: Convert string ID → Number to match your product IDs
-  const product = products.find((item) => item.id === Number(productId));
-  
+  const isCustomer = audience === 'customer';
+  const product = store.products.find((item) => item.id === Number(productId));
+  const hasSizes = product && !/lanyard/i.test(product.name);
+  const sizes = hasSizes ? (product.sizes || ['S', 'M', 'L', 'XL']) : [];
+  const [selectedSize, setSelectedSize] = useState(sizes[0] || null);
   const router = useRouter();
   const goBack = () => {
     if (router.canGoBack()) {
@@ -46,14 +48,11 @@ export default function ProductDetailsScreen() {
               <View style={styles.artGlow} />
               <View style={styles.productShadow} />
               <View style={styles.productStage} />
-              
-              {/* ✅ UPDATED: Show your real image instead of emoji */}
               <Image
                 source={product.image}
                 style={styles.productImageFile}
                 resizeMode="contain"
               />
-              
             </View>
 
             <View style={styles.badge}>
@@ -78,14 +77,7 @@ export default function ProductDetailsScreen() {
               </Text>
             </View>
 
-            <Text style={styles.sectionLabel}>Available sizes</Text>
-            <View style={styles.sizeRow}>
-              {(product.sizes || ['S', 'M', 'L', 'XL']).map((size) => (
-                <View key={size} style={styles.sizeChip}>
-                  <Text style={styles.sizeText}>{size}</Text>
-                </View>
-              ))}
-            </View>
+            {hasSizes && <><Text style={styles.sectionLabel}>Choose a size</Text><View style={styles.sizeRow}>{sizes.map((size) => <TouchableOpacity key={size} onPress={() => setSelectedSize(size)} style={[styles.sizeChip, selectedSize === size && styles.sizeChipSelected]}><Text style={[styles.sizeText, selectedSize === size && styles.sizeTextSelected]}>{size}</Text></TouchableOpacity>)}</View></>}
 
             <View style={styles.idPanel}>
               <Text style={styles.idLabel}>MERCH SKU</Text>
@@ -93,6 +85,14 @@ export default function ProductDetailsScreen() {
                 MERCH-{String(product.id).padStart(3, '0')}
               </Text>
             </View>
+            {isCustomer && <TouchableOpacity style={styles.addToCartButton} onPress={() => {
+              if (hasSizes && !selectedSize) return;
+              const existing = store.cart.find((item) => item.id === product.id && item.size === selectedSize);
+              if (existing) existing.quantity = (existing.quantity || 1) + 1;
+              else store.cart.push({ ...product, size: selectedSize, quantity: 1 });
+              store.cartNotificationCount += 1;
+              router.replace({ pathname: '/dashboard', params: { role: 'customer', name: name || 'Student' } });
+            }}><Text style={styles.addToCartText}>Add to cart</Text></TouchableOpacity>}
           </View>
         ) : (
           <View style={styles.card}>
@@ -265,10 +265,17 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 9,
   },
+  sizeChipSelected: {
+    backgroundColor: '#D9B45B',
+    borderColor: '#D9B45B',
+  },
   sizeText: {
     color: '#0B1F33',
     fontSize: 13,
     fontWeight: '700',
+  },
+  sizeTextSelected: {
+    color: '#0B1F33',
   },
   idPanel: {
     backgroundColor: '#F8F7F2',
@@ -301,5 +308,17 @@ const styles = StyleSheet.create({
     color: '#0B1F33',
     fontSize: 14,
     fontWeight: '700',
+  },
+  addToCartButton: {
+    alignItems: 'center',
+    backgroundColor: '#D9B45B',
+    borderRadius: 13,
+    marginTop: 18,
+    paddingVertical: 15,
+  },
+  addToCartText: {
+    color: '#0B1F33',
+    fontSize: 15,
+    fontWeight: '800',
   },
 });
