@@ -12,7 +12,6 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import DarkRadialBackground from "../components/DarkRadialBackground";
 import { demoAccounts } from "../data/demoStore";
 
 export default function LoginScreen() {
@@ -48,13 +47,12 @@ export default function LoginScreen() {
         "Check the username, ID number, and password, then try again.",
       );
     router.replace({
-      pathname: "/dashboard",
+      pathname: account.role === "customer" ? "/student/dashboard" : "/store-owner/dashboard",
       params: { role: account.role, name: account.name },
     });
   };
   return (
     <SafeAreaView style={styles.safe}>
-      <DarkRadialBackground />
       <KeyboardAvoidingView
         style={{ flex: 1 }}
         behavior={Platform.OS === "ios" ? "padding" : undefined}
@@ -135,7 +133,7 @@ export default function LoginScreen() {
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: "#061525" },
+  safe: { flex: 1, backgroundColor: "#F7F6F2" },
   content: { padding: 22, paddingBottom: 36, flexGrow: 1 },
   header: {
     flexDirection: "row",
@@ -143,8 +141,8 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginBottom: 26,
   },
-  brand: { color: "#FFF", fontSize: 24, fontWeight: "800" },
-  link: { color: "#9A741E", fontWeight: "700" },
+  brand: { color: "#173B5B", fontSize: 24, fontWeight: "800" },
+  link: { color: "#173B5B", fontWeight: "700" },
   hero: {
     backgroundColor: "#183653",
     borderRadius: 24,
@@ -170,7 +168,7 @@ const styles = StyleSheet.create({
     borderRadius: 22,
     padding: 20,
     borderWidth: 1,
-    borderColor: "#D9B45B",
+    borderColor: "#E7E2D6",
   },
   label: {
     color: "#0B1F33",
@@ -196,5 +194,5 @@ const styles = StyleSheet.create({
     marginTop: 18,
   },
   buttonText: { color: "#0B1F33", fontWeight: "800", fontSize: 15 },
-  signup: { color: "#E2E8F0", textAlign: "center", marginTop: 22 },
+  signup: { color: "#647386", textAlign: "center", marginTop: 22 },
 });

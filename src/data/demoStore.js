@@ -74,6 +74,6 @@ export const store = {
   reservations: [],
 };
 
-export const money = (amount) => `₱${Number(amount).toLocaleString("en-PH")}`;
+export const money = (amount) => `\u20B1${Number(amount).toLocaleString("en-PH")}`;
 export const productAmount = (product) =>
   Number(String(product.price).replace(/[^0-9.]/g, "")) || 0;

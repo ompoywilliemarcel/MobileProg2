@@ -17,7 +17,7 @@ export default function ProductDetailsScreen() {
   const productId = Array.isArray(id) ? id[0] : id;
   const isCustomer = audience === 'customer';
   const product = store.products.find((item) => item.id === Number(productId));
-  const hasSizes = product && !/lanyard/i.test(product.name);
+  const hasSizes = product && (product.hasSizes ?? !/lanyard/i.test(product.name));
   const sizes = hasSizes ? (product.sizes || ['S', 'M', 'L', 'XL']) : [];
   const [selectedSize, setSelectedSize] = useState(sizes[0] || null);
   const router = useRouter();
@@ -39,7 +39,7 @@ export default function ProductDetailsScreen() {
           accessibilityRole="button"
           accessibilityLabel="Back to products"
         >
-          <Text style={styles.backButtonText}>‹  Back to products</Text>
+          <Text style={styles.backButtonText}>&lt;  Back to products</Text>
         </TouchableOpacity>
 
         {product ? (
@@ -91,7 +91,7 @@ export default function ProductDetailsScreen() {
               if (existing) existing.quantity = (existing.quantity || 1) + 1;
               else store.cart.push({ ...product, size: selectedSize, quantity: 1 });
               store.cartNotificationCount += 1;
-              router.replace({ pathname: '/dashboard', params: { role: 'customer', name: name || 'Student' } });
+              router.replace({ pathname: '/student/dashboard', params: { name: name || 'Student' } });
             }}><Text style={styles.addToCartText}>Add to cart</Text></TouchableOpacity>}
           </View>
         ) : (

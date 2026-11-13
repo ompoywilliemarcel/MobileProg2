@@ -3,7 +3,7 @@ export const products = [
     id: 1,
     name: "PathFit Uniform",
     category: "Apparel",
-    price: "₱799",
+    price: "\u20B1799",
     color: "#000032",
     image: require("../../assets/products/pathfit.jpg")
   },
@@ -11,7 +11,7 @@ export const products = [
     id: 2,
     name: "Men's Uniform",
     category: "Men's Wear",
-    price: "₱1,400",
+    price: "\u20B11,400",
     color: "#000032",
     image: require("../../assets/products/men.jpg")
   },
@@ -19,7 +19,7 @@ export const products = [
     id: 3,
     name: "Women's Uniform",
     category: "Women's Wear",
-    price: "₱1,300",
+    price: "\u20B11,300",
     color: "#000032",
     image: require("../../assets/products/women.jpg")
   },
@@ -27,7 +27,7 @@ export const products = [
     id: 4,
     name: "Trailblazer Shirt",
     category: "Outdoor",
-    price: "₱500",
+    price: "\u20B1500",
     color: "#000032",
     image: require("../../assets/products/trail.jpg")
   },
@@ -35,7 +35,7 @@ export const products = [
     id: 5,
     name: "Lanyard",
     category: "Accessory",
-    price: "₱100",
+    price: "\u20B1100",
     color: "#000032",
     image: require("../../assets/products/lanyard.jpg")
   }

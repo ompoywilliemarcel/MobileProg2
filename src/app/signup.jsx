@@ -1,5 +1,5 @@
 import { Link, useLocalSearchParams, useRouter } from "expo-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   KeyboardAvoidingView,
   Platform,
@@ -11,10 +11,9 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import DarkRadialBackground from "../components/DarkRadialBackground";
 import { demoAccounts, store } from "../data/demoStore";
 
-export default function HomeScreen() {
+export default function SignupScreen() {
   const router = useRouter();
   const { audience: requestedAudience } = useLocalSearchParams();
   const audience = requestedAudience === "store" ? "store" : "student";
@@ -27,6 +26,11 @@ export default function HomeScreen() {
   const [showPassword, setShowPassword] = useState(false);
   const [agreedToTerms, setAgreedToTerms] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
+
+  useEffect(() => {
+    setIdNumber("");
+    setErrorMessage("");
+  }, [audience]);
 
   const handleCreateAccount = () => {
     if (!fullName || !email || !password || !confirmPassword) {
@@ -87,7 +91,6 @@ export default function HomeScreen() {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <DarkRadialBackground />
       <KeyboardAvoidingView
         style={styles.container}
         behavior={Platform.OS === "ios" ? "padding" : undefined}
@@ -97,7 +100,7 @@ export default function HomeScreen() {
           keyboardShouldPersistTaps="handled"
         >
           <View style={styles.headerRow}>
-            <Text style={styles.brand}>Merch Store</Text>
+            <Text style={styles.brand}>USTP Wear</Text>
             <Link href="/" asChild>
               <TouchableOpacity style={styles.helpButton}>
                 <Text style={styles.helpText}>Shop products</Text>
@@ -117,6 +120,19 @@ export default function HomeScreen() {
                 ? "Set up your USTP Store access."
                 : "Join and shop your favorite campus merch."}
             </Text>
+          </View>
+
+          <View style={styles.accountTypePicker}>
+            <Text style={styles.accountTypeLabel}>ACCOUNT TYPE</Text>
+            <View style={styles.accountTypeOptions}>
+              {[{ key: "student", label: "Student" }, { key: "store", label: "Store owner" }].map((option) => (
+                <Link key={option.key} href={{ pathname: "/signup", params: { audience: option.key } }} asChild>
+                  <TouchableOpacity style={StyleSheet.flatten([styles.accountTypeOption, audience === option.key && styles.accountTypeOptionActive])} accessibilityRole="button" accessibilityState={{ selected: audience === option.key }}>
+                    <Text style={[styles.accountTypeOptionText, audience === option.key && styles.accountTypeOptionTextActive]}>{option.label}</Text>
+                  </TouchableOpacity>
+                </Link>
+              ))}
+            </View>
           </View>
 
           <View style={styles.formCard}>
@@ -235,16 +251,6 @@ export default function HomeScreen() {
               <Text style={styles.primaryButtonText}>Create account</Text>
             </TouchableOpacity>
 
-            <Text style={styles.orText}>or sign up with</Text>
-
-            <View style={styles.socialRow}>
-              <TouchableOpacity style={styles.socialButton}>
-                <Text style={styles.socialText}>G</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.socialButton}>
-                <Text style={styles.socialText}>f</Text>
-              </TouchableOpacity>
-            </View>
           </View>
 
           <Text style={styles.signupText}>
@@ -262,7 +268,7 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: "#061525",
+    backgroundColor: "#F7F6F2",
   },
   container: {
     flex: 1,
@@ -282,9 +288,8 @@ const styles = StyleSheet.create({
   brand: {
     fontSize: 28,
     fontWeight: "700",
-    color: "#FFFFFF",
+    color: "#173B5B",
     letterSpacing: -0.8,
-    fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
   },
   helpButton: {
     paddingHorizontal: 12,
@@ -299,6 +304,13 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: "600",
   },
+  accountTypePicker: { marginTop: -6, marginBottom: 16 },
+  accountTypeLabel: { color: "#647386", fontSize: 10, fontWeight: "800", letterSpacing: 1, marginBottom: 8 },
+  accountTypeOptions: { flexDirection: "row", padding: 4, backgroundColor: "#E9ECEE", borderRadius: 13, gap: 5 },
+  accountTypeOption: { flex: 1, alignItems: "center", paddingVertical: 11, borderRadius: 10 },
+  accountTypeOptionActive: { backgroundColor: "#173B5B" },
+  accountTypeOptionText: { color: "#536476", fontSize: 12, fontWeight: "700" },
+  accountTypeOptionTextActive: { color: "#FFFFFF" },
   heroCard: {
     backgroundColor: "#183653",
     borderRadius: 28,
@@ -338,7 +350,7 @@ const styles = StyleSheet.create({
     borderRadius: 24,
     padding: 20,
     borderWidth: 1,
-    borderColor: "#D9B45B",
+    borderColor: "#E7E2D6",
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 10 },
     shadowOpacity: 0.1,

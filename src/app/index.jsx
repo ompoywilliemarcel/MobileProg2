@@ -8,13 +8,11 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import DarkRadialBackground from '../components/DarkRadialBackground';
 import { products } from '../data/products';
 
 export default function HomeScreen() {
   return (
     <SafeAreaView style={styles.safeArea}>
-      <DarkRadialBackground />
       <ScrollView contentContainerStyle={styles.content}>
         <View style={styles.headerRow}>
           <View style={styles.brandRow}>
@@ -48,7 +46,7 @@ export default function HomeScreen() {
 
         <View style={styles.sectionHeading}>
           <View>
-            <Text style={styles.sectionTitle}>The merch drop</Text>
+          <Text style={styles.sectionTitle}>The merch drop</Text>
             <Text style={styles.sectionSubtitle}>
               Fresh favorites, made to wear
             </Text>
@@ -106,7 +104,7 @@ export default function HomeScreen() {
           ))}
         </View>
 
-        <Link href="/access" asChild>
+        <Link href={{ pathname: "/access", params: { mode: "signup" } }} asChild>
           <TouchableOpacity style={styles.signupLink}>
             <Text style={styles.signupLinkText}>Create an account</Text>
           </TouchableOpacity>
@@ -119,7 +117,7 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#061525',
+    backgroundColor: '#F7F6F2',
   },
   content: {
     flexGrow: 1,
@@ -134,28 +132,28 @@ const styles = StyleSheet.create({
     marginBottom: 22,
   },
   brand: {
-    color: '#FFFFFF',
+    color: '#173B5B',
     fontSize: 28,
     fontWeight: '700',
     letterSpacing: -0.8,
   },
   eyebrow: {
-    color: '#D9B45B',
+    color: '#647386',
     fontSize: 9,
     fontWeight: '700',
     letterSpacing: 1.4,
     marginTop: 3,
   },
   headerButton: {
-    backgroundColor: '#D9B45B',
-    borderColor: '#E7C875',
+    backgroundColor: '#FFFFFF',
+    borderColor: '#DCE2E7',
     borderWidth: 1,
     borderRadius: 999,
     paddingHorizontal: 16,
     paddingVertical: 9,
   },
   headerButtonText: {
-    color: '#0B1F33',
+    color: '#173B5B',
     fontSize: 13,
     fontWeight: '700',
   },
@@ -200,17 +198,17 @@ const styles = StyleSheet.create({
     marginBottom: 13,
   },
   sectionTitle: {
-    color: '#FFFFFF',
+    color: '#173B5B',
     fontSize: 22,
     fontWeight: '800',
   },
   sectionSubtitle: {
-    color: '#C4D0DC',
+    color: '#647386',
     fontSize: 12,
     marginTop: 3,
   },
   itemCount: {
-    color: '#D9B45B',
+    color: '#173B5B',
     fontSize: 12,
     fontWeight: '600',
   },
@@ -222,14 +220,14 @@ const styles = StyleSheet.create({
   },
   productCard: {
     backgroundColor: '#FFFFFF',
-    borderColor: '#D9B45B',
+    borderColor: '#E7E2D6',
     borderRadius: 18,
     borderWidth: 1,
     overflow: 'hidden',
     width: '48%',
     shadowColor: '#0B1F33',
     shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.2,
+    shadowOpacity: 0.08,
     shadowRadius: 12,
     elevation: 7,
   },
@@ -316,18 +314,14 @@ const styles = StyleSheet.create({
     fontSize: 17,
     fontWeight: '800',
   },
-  detailsHint: { color: '#9A741E', fontSize: 11, fontWeight: '700' },
+  detailsHint: { color: '#526579', fontSize: 11, fontWeight: '700' },
   addCartButton: { alignItems: 'center', backgroundColor: '#D9B45B', marginHorizontal: 10, marginBottom: 10, borderRadius: 10, paddingVertical: 10 },
   addCartText: { color: '#0B1F33', fontSize: 12, fontWeight: '800' },
-  signupLink: {
-    alignSelf: 'center',
-    padding: 14,
-    marginTop: 12,
-  },
+  signupLink: { alignItems: 'center', backgroundColor: '#D9B45B', borderRadius: 14, paddingVertical: 16, marginTop: 20, marginBottom: 12 },
   signupLinkText: {
-    color: '#D9B45B',
-    fontSize: 13,
-    fontWeight: '700',
+    color: '#0B1F33',
+    fontSize: 15,
+    fontWeight: '800',
   },
    
   brandRow: {

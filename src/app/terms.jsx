@@ -7,12 +7,10 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import DarkRadialBackground from "../components/DarkRadialBackground";
 
 export default function TermsScreen() {
   return (
     <SafeAreaView style={styles.safeArea}>
-      <DarkRadialBackground />
 
       <ScrollView contentContainerStyle={styles.content}>
         <View style={styles.headerRow}>
@@ -82,7 +80,7 @@ export default function TermsScreen() {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: "#061525",
+    backgroundColor: "#F7F6F2",
   },
   content: {
     flexGrow: 1,
@@ -99,7 +97,7 @@ const styles = StyleSheet.create({
   brand: {
     fontSize: 28,
     fontWeight: "700",
-    color: "#FFFFFF",
+    color: "#173B5B",
     letterSpacing: -0.8,
   },
   backButton: {
@@ -156,7 +154,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#ffffff",
     borderRadius: 24,
     borderWidth: 1,
-    borderColor: "#D9B45B",
+    borderColor: "#E7E2D6",
     padding: 20,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 10 },
