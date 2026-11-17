@@ -6,10 +6,10 @@ import {
   StyleSheet,
   Text,
   TouchableOpacity,
+  useWindowDimensions,
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import DarkRadialBackground from '../../components/DarkRadialBackground';
 import { store } from '../../data/demoStore';
 
 export default function ProductDetailsScreen() {
@@ -17,9 +17,13 @@ export default function ProductDetailsScreen() {
   const productId = Array.isArray(id) ? id[0] : id;
   const isCustomer = audience === 'customer';
   const product = store.products.find((item) => item.id === Number(productId));
-  const hasSizes = product && (product.hasSizes ?? !/lanyard/i.test(product.name));
+  const isAccessory = product && /accessor/i.test(product.category || '');
+  const hasSizes = product && (product.hasSizes ?? (!isAccessory && !/lanyard/i.test(product.name)));
   const sizes = hasSizes ? (product.sizes || ['S', 'M', 'L', 'XL']) : [];
   const [selectedSize, setSelectedSize] = useState(sizes[0] || null);
+  const [detailsOpen, setDetailsOpen] = useState(false);
+  const { width } = useWindowDimensions();
+  const isWide = width >= 700;
   const router = useRouter();
   const goBack = () => {
     if (router.canGoBack()) {
@@ -31,7 +35,6 @@ export default function ProductDetailsScreen() {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <DarkRadialBackground />
       <ScrollView contentContainerStyle={styles.content}>
         <TouchableOpacity
           style={styles.backButton}
@@ -39,12 +42,12 @@ export default function ProductDetailsScreen() {
           accessibilityRole="button"
           accessibilityLabel="Back to products"
         >
-          <Text style={styles.backButtonText}>&lt;  Back to products</Text>
+          <Text style={styles.backButtonText}>‹  Back to products</Text>
         </TouchableOpacity>
 
         {product ? (
-          <View style={styles.card}>
-            <View style={[styles.productImage, { backgroundColor: product.color }]}>
+          <View style={[styles.card, isWide && styles.cardWide]}>
+            <View style={[styles.productImage, isWide && styles.productImageWide, { backgroundColor: product.color }]}>
               <View style={styles.artGlow} />
               <View style={styles.productShadow} />
               <View style={styles.productStage} />
@@ -55,36 +58,24 @@ export default function ProductDetailsScreen() {
               />
             </View>
 
-            <View style={styles.badge}>
-              <Text style={styles.badgeText}>{product.category}</Text>
-            </View>
-
-            <Text style={styles.title}>{product.name}</Text>
-            <Text style={styles.price}>{product.price}</Text>
-
-            <View style={styles.divider} />
-
-            <Text style={styles.sectionLabel}>Product details</Text>
-            <Text style={styles.description}>
-              {product.description || 'Premium quality official merchandise. Comfortable, stylish, and made to last.'}
-            </Text>
-
-            <Text style={styles.sectionLabel}>Color</Text>
-            <View style={styles.colorRow}>
-              <View style={[styles.colorSwatch, { backgroundColor: product.color }]} />
-              <Text style={styles.colorName}>
-                {product.colorName || 'Official Collection'}
-              </Text>
-            </View>
-
-            {hasSizes && <><Text style={styles.sectionLabel}>Choose a size</Text><View style={styles.sizeRow}>{sizes.map((size) => <TouchableOpacity key={size} onPress={() => setSelectedSize(size)} style={[styles.sizeChip, selectedSize === size && styles.sizeChipSelected]}><Text style={[styles.sizeText, selectedSize === size && styles.sizeTextSelected]}>{size}</Text></TouchableOpacity>)}</View></>}
-
-            <View style={styles.idPanel}>
-              <Text style={styles.idLabel}>MERCH SKU</Text>
-              <Text style={styles.idValue}>
-                MERCH-{String(product.id).padStart(3, '0')}
-              </Text>
-            </View>
+            <View style={[styles.productInfo, isWide && styles.productInfoWide]}>
+              <View style={styles.topLine}>
+                <View style={styles.badge}><Text style={styles.badgeText}>MERCH DROP</Text></View>
+                <Text style={styles.sparkle}>✧</Text>
+              </View>
+              <Text style={styles.category}>{product.category.toUpperCase()}</Text>
+              <Text style={styles.title}>{product.name}</Text>
+              <View style={isWide ? styles.infoSpacer : styles.mobileSpacer} />
+              <Text style={styles.price}>{product.price}</Text>
+              <TouchableOpacity style={styles.detailsLink} onPress={() => setDetailsOpen(!detailsOpen)} accessibilityRole="button">
+                <Text style={styles.detailsText}>{detailsOpen ? 'Hide details' : 'Details'}  ›</Text>
+              </TouchableOpacity>
+              {detailsOpen && <View style={styles.detailsPanel}>
+                <Text style={styles.description}>{product.description || 'Premium quality official merchandise. Comfortable, stylish, and made to last.'}</Text>
+                <View style={styles.colorRow}><View style={[styles.colorSwatch, { backgroundColor: product.color }]} /><Text style={styles.colorName}>{product.colorName || 'Official Collection'}</Text></View>
+                {hasSizes && <><Text style={styles.sectionLabel}>Choose a size</Text><View style={styles.sizeRow}>{sizes.map((size) => <TouchableOpacity key={size} onPress={() => setSelectedSize(size)} style={[styles.sizeChip, selectedSize === size && styles.sizeChipSelected]}><Text style={[styles.sizeText, selectedSize === size && styles.sizeTextSelected]}>{size}</Text></TouchableOpacity>)}</View></>}
+                <Text style={styles.idValue}>MERCH-{String(product.id).padStart(3, '0')}</Text>
+              </View>}
             {isCustomer && <TouchableOpacity style={styles.addToCartButton} onPress={() => {
               if (hasSizes && !selectedSize) return;
               const existing = store.cart.find((item) => item.id === product.id && item.size === selectedSize);
@@ -93,6 +84,7 @@ export default function ProductDetailsScreen() {
               store.cartNotificationCount += 1;
               router.replace({ pathname: '/student/dashboard', params: { name: name || 'Student' } });
             }}><Text style={styles.addToCartText}>Add to cart</Text></TouchableOpacity>}
+            </View>
           </View>
         ) : (
           <View style={styles.card}>
@@ -115,11 +107,12 @@ export default function ProductDetailsScreen() {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#061525',
+    backgroundColor: '#F7F7F3',
   },
   content: {
     flexGrow: 1,
-    padding: 22,
+    padding: 20,
+    justifyContent: 'center',
   },
   backButton: {
     alignSelf: 'flex-start',
@@ -128,26 +121,49 @@ const styles = StyleSheet.create({
     marginBottom: 19,
   },
   backButtonText: {
-    color: '#D9B45B',
+    color: '#263246',
     fontSize: 14,
     fontWeight: '700',
   },
   card: {
     backgroundColor: '#FFFFFF',
-    borderColor: '#D9B45B',
-    borderRadius: 24,
+    borderColor: '#EEEDE7',
+    borderRadius: 22,
     borderWidth: 1,
-    padding: 18,
+    padding: 12,
+    elevation: 5,
+    shadowColor: '#182033',
+    shadowOffset: { width: 0, height: 7 },
+    shadowOpacity: 0.1,
+    shadowRadius: 16,
+  },
+  cardWide: {
+    flexDirection: 'row',
+    alignItems: 'stretch',
+    padding: 12,
+    minHeight: 310,
+    gap: 12,
+  },
+  productInfo: {
+    paddingHorizontal: 8,
+    paddingVertical: 6,
+  },
+  productInfoWide: {
+    flex: 1,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
   },
   productImage: {
     alignItems: 'center',
     borderRadius: 18,
-    height: 220,
+    height: 290,
     justifyContent: 'center',
-    marginBottom: 20,
+    marginBottom: 0,
     overflow: 'hidden',
     position: 'relative',
+    minWidth: 220,
   },
+  productImageWide: { flex: 1 },
   artGlow: {
     backgroundColor: 'rgba(255,255,255,0.10)',
     borderRadius: 150,
@@ -176,8 +192,8 @@ const styles = StyleSheet.create({
     width: 166,
   },
   productImageFile: {
-    width: '80%',
-    height: '80%',
+    width: '82%',
+    height: '82%',
     position: 'absolute',
   },
   imageLabel: {
@@ -190,31 +206,39 @@ const styles = StyleSheet.create({
   },
   badge: {
     alignSelf: 'flex-start',
-    backgroundColor: '#D9B45B',
+    backgroundColor: '#F1F0EC',
     borderRadius: 999,
-    marginBottom: 12,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
+    marginBottom: 0,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
   },
   badgeText: {
-    color: '#0B1F33',
-    fontSize: 11,
+    color: '#273146',
+    fontSize: 10,
     fontWeight: '600',
     letterSpacing: 0.2,
   },
   title: {
-    color: '#0B1F33',
-    fontSize: 30,
+    color: '#18243A',
+    fontSize: 25,
     fontWeight: '800',
     letterSpacing: -0.6,
-    marginTop: 7,
+    marginTop: 5,
   },
   price: {
-    color: '#9A741E',
-    fontSize: 19,
-    fontWeight: '700',
-    marginTop: 10,
+    color: '#18243A',
+    fontSize: 21,
+    fontWeight: '800',
+    marginTop: 4,
   },
+  topLine: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 22 },
+  sparkle: { color: '#29344A', fontSize: 22, fontWeight: '700', paddingRight: 4 },
+  category: { color: '#8B8D92', fontSize: 11, fontWeight: '700', letterSpacing: 0.8 },
+  infoSpacer: { flex: 1, minHeight: 22 },
+  mobileSpacer: { height: 24 },
+  detailsLink: { alignSelf: 'flex-end', paddingVertical: 10 },
+  detailsText: { color: '#515C6D', fontSize: 12, fontWeight: '700' },
+  detailsPanel: { borderTopColor: '#EEEDE7', borderTopWidth: 1, paddingTop: 14, marginTop: 2 },
   divider: {
     backgroundColor: '#E7E2D6',
     height: 1,
@@ -313,8 +337,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: '#D9B45B',
     borderRadius: 13,
-    marginTop: 18,
-    paddingVertical: 15,
+    marginTop: 2,
+    paddingVertical: 13,
+    backgroundColor: '#E5BD55',
   },
   addToCartText: {
     color: '#0B1F33',

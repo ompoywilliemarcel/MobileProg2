@@ -5,12 +5,16 @@ import {
   StyleSheet,
   Text,
   TouchableOpacity,
+  useWindowDimensions,
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { products } from '../data/products';
 
 export default function HomeScreen() {
+  const { width } = useWindowDimensions();
+  const compact = width < 600;
+
   return (
     <SafeAreaView style={styles.safeArea}>
       <ScrollView contentContainerStyle={styles.content}>
@@ -56,19 +60,21 @@ export default function HomeScreen() {
 
         <View style={styles.productList}>
           {products.map((product) => (
-            <View key={product.id} style={styles.productCard}>
+            <View key={product.id} style={[styles.productCard, compact && styles.productCardCompact]}>
               <Link
                 href={{ pathname: '/details/[id]', params: { id: product.id } }}
                 asChild
               >
               <TouchableOpacity
+                style={styles.productImageLink}
                 accessibilityRole="button"
                 accessibilityLabel={`View ${product.name}, ${product.price}`}
               >
                 <View
                   style={[
                     styles.productImage,
-                    { backgroundColor: product.color },
+                    compact && styles.productImageCompact,
+                    { backgroundColor: '#F8F7F3' },
                   ]}
                 >
                   <View style={styles.artGlow} />
@@ -79,11 +85,11 @@ export default function HomeScreen() {
                     style={styles.productImageFile}
                     resizeMode="contain"
                   />
+                </View>
+                <View style={styles.productInfo}>
                   <View style={styles.productTag}>
                     <Text style={styles.productTagText}>MERCH DROP</Text>
                   </View>
-                </View>
-                <View style={styles.productInfo}>
                   <Text style={styles.productCategory}>{product.category}</Text>
                   <Text style={styles.productName} numberOfLines={2}>
                     {product.name}
@@ -219,25 +225,35 @@ const styles = StyleSheet.create({
     rowGap: 14,
   },
   productCard: {
+    flexDirection: 'row',
+    position: 'relative',
     backgroundColor: '#FFFFFF',
-    borderColor: '#E7E2D6',
-    borderRadius: 18,
-    borderWidth: 1,
+    borderColor: '#D9B45B',
+    borderRadius: 16,
+    borderWidth: 2,
     overflow: 'hidden',
     width: '48%',
+    minHeight: 260,
     shadowColor: '#0B1F33',
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.08,
     shadowRadius: 12,
     elevation: 7,
   },
+  productCardCompact: { width: '100%', minHeight: 170
+   },
+  productImageLink: { flex: 1, flexDirection: 'row' },
   productImage: {
     alignItems: 'center',
     justifyContent: 'center',
-    height: 145,
+    width: '50%',
+    height: '100%',
+    minHeight: 260,
+    backgroundColor: '#F2F1ED',
     overflow: 'hidden',
     position: 'relative',
   },
+  productImageCompact: { minHeight: 190 },
   artGlow: {
     backgroundColor: 'rgba(255,255,255,0.10)',
     borderRadius: 90,
@@ -266,18 +282,17 @@ const styles = StyleSheet.create({
     width: 94,
   },
   productImageFile: {
-    width: '80%',
-    height: '80%',
+    width: '100%',
+    height: '100%',
     position: 'absolute',
   },
   productTag: {
-    backgroundColor: 'rgba(255,255,255,0.88)',
+    backgroundColor: '#F1F0EC',
     borderRadius: 999,
-    bottom: 9,
-    left: 9,
+    alignSelf: 'flex-start',
+    marginBottom: 18,
     paddingHorizontal: 8,
     paddingVertical: 5,
-    position: 'absolute',
   },
   productTagText: {
     color: '#0B1F33',
@@ -286,7 +301,11 @@ const styles = StyleSheet.create({
     letterSpacing: 0.3,
   },
   productInfo: {
-    padding: 11,
+    flex: 1,
+    justifyContent: 'center',
+    backgroundColor: '#FFFFFF',
+    padding: 14,
+    paddingBottom: 62,
   },
   productCategory: {
     color: '#526579',
@@ -301,13 +320,14 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     lineHeight: 18,
     marginTop: 5,
-    minHeight: 36,
+    minHeight: 0,
   },
   productFooter: {
     alignItems: 'center',
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginTop: 8,
+    marginTop: 'auto',
+    paddingTop: 16,
   },
   productPrice: {
     color: '#0B1F33',
@@ -315,7 +335,7 @@ const styles = StyleSheet.create({
     fontWeight: '800',
   },
   detailsHint: { color: '#526579', fontSize: 11, fontWeight: '700' },
-  addCartButton: { alignItems: 'center', backgroundColor: '#D9B45B', marginHorizontal: 10, marginBottom: 10, borderRadius: 10, paddingVertical: 10 },
+  addCartButton: { alignItems: 'center', backgroundColor: '#D9B45B', position: 'absolute', right: 12, bottom: 12, width: '45%', borderRadius: 999, paddingVertical: 12 },
   addCartText: { color: '#0B1F33', fontSize: 12, fontWeight: '800' },
   signupLink: { alignItems: 'center', backgroundColor: '#D9B45B', borderRadius: 14, paddingVertical: 16, marginTop: 20, marginBottom: 12 },
   signupLinkText: {
