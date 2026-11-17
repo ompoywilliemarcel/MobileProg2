@@ -1,4 +1,4 @@
-import { Link, useLocalSearchParams } from "expo-router";
+import { Link, useLocalSearchParams, useRouter } from "expo-router";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -9,11 +9,20 @@ const accountTypes = [
 
 export default function AccessScreen() {
   const { mode } = useLocalSearchParams();
+  const router = useRouter();
   const isSignup = mode === "signup";
   const destination = isSignup ? "/signup" : "/login";
 
   return (
     <SafeAreaView style={styles.safe}>
+      <TouchableOpacity
+        style={styles.backButton}
+        onPress={() => router.replace("/")}
+        accessibilityRole="button"
+        accessibilityLabel="Back to products"
+      >
+        <Text style={styles.backButtonText}>‹  Back to products</Text>
+      </TouchableOpacity>
       <View style={styles.content}>
         <Text style={styles.title}>Choose your account type</Text>
         <Text style={styles.subtitle}>
@@ -41,6 +50,8 @@ export default function AccessScreen() {
 
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: "#F7F6F2" },
+  backButton: { position: "absolute", top: 12, left: 24, zIndex: 1, paddingVertical: 8, paddingRight: 12 },
+  backButtonText: { color: "#29364A", fontSize: 13, fontWeight: "700" },
   content: { flex: 1, justifyContent: "center", width: "100%", maxWidth: 520, alignSelf: "center", paddingHorizontal: 24 },
   title: { color: "#173B5B", fontSize: 28, lineHeight: 34, fontWeight: "800", textAlign: "center", letterSpacing: -0.5 },
   subtitle: { color: "#647386", fontSize: 14, lineHeight: 21, textAlign: "center", marginTop: 9, marginBottom: 26 },
