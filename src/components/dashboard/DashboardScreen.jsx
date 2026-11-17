@@ -667,7 +667,10 @@ export default function DashboardScreen({ fixedRole, fixedName } = {}) {
                   style={styles.studentAddToCart}
                   accessibilityRole="button"
                   accessibilityLabel={`Add ${p.name} to cart`}
-                  onPress={() => addCustomerProductToCart(p)}
+                  onPress={(event) => {
+                    event.stopPropagation?.();
+                    addCustomerProductToCart(p);
+                  }}
                 >
                   <Text style={styles.studentAddToCartText}>Add to cart</Text>
                 </TouchableOpacity>
@@ -675,7 +678,8 @@ export default function DashboardScreen({ fixedRole, fixedName } = {}) {
                   style={styles.studentBuyNow}
                   accessibilityRole="button"
                   accessibilityLabel={`Buy ${p.name} now`}
-                  onPress={() => {
+                  onPress={(event) => {
+                    event.stopPropagation?.();
                     addCustomerProductToCart(p);
                     router.push({ pathname: "/student/cart", params: { name } });
                   }}
@@ -1657,13 +1661,13 @@ const styles = StyleSheet.create({
     backgroundColor: "#F8F7F3",
   },
   studentProductRow: { flex: 1, flexDirection: "row" },
-  studentProductInfo: { flex: 1, paddingHorizontal: 18, paddingTop: 18, paddingBottom: 94, backgroundColor: "#FFFFFF" },
+  studentProductInfo: { flex: 1, minHeight: 390, position: "relative", paddingHorizontal: 18, paddingTop: 18, paddingBottom: 94, backgroundColor: "#FFFFFF" },
   studentMerchTag: { alignSelf: "flex-end", backgroundColor: "#F1F0EC", borderRadius: 999, paddingHorizontal: 10, paddingVertical: 6, marginBottom: 10 },
   studentMerchTagText: { color: "#0B1F33", fontSize: 9, fontWeight: "900", letterSpacing: 0.3 },
   studentProductDescription: { color: "#303640", fontSize: 12, fontStyle: "italic", lineHeight: 17, marginTop: 7 },
   studentProductName: { fontSize: 27, lineHeight: 32, minHeight: 0, marginTop: 8 },
   studentProductPrice: { color: "#0B1F33", fontSize: 24, fontWeight: "900", marginTop: 10 },
-  studentPurchaseActions: { position: "absolute", left: 18, right: 14, bottom: 10, gap: 7 },
+  studentPurchaseActions: { position: "absolute", zIndex: 2, left: 18, right: 14, bottom: 10, gap: 7 },
   studentAddToCart: { alignItems: "center", backgroundColor: "#1D273D", borderRadius: 999, paddingVertical: 11 },
   studentAddToCartText: { color: "#FFFFFF", fontSize: 13, fontWeight: "800" },
   studentBuyNow: { alignItems: "center", backgroundColor: "#D9B45B", borderRadius: 999, paddingVertical: 11 },

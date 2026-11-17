@@ -22,17 +22,20 @@ export default function LoginScreen() {
   const [idNumber, setIdNumber] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [fieldErrors, setFieldErrors] = useState({});
   const handleLogin = async () => {
+    setFieldErrors({});
     const validId = isStore
       ? /^32\d{5}$/.test(idNumber.trim())
       : /^202\d{7}$/.test(idNumber.trim());
-    if (!validId)
-      return Alert.alert(
-        "Incomplete ID number",
-        isStore
-          ? "Enter your complete store ID (32 followed by 5 digits)."
-          : "Enter your complete student ID (202 followed by 7 digits).",
-      );
+    if (!validId) {
+      setFieldErrors({
+        idNumber: isStore
+          ? "Enter a valid Store ID (32 followed by 5 digits)."
+          : "Enter a valid student number (202 followed by 7 digits).",
+      });
+      return;
+    }
     try {
       await loadSavedAccounts();
     } catch {
@@ -44,16 +47,21 @@ export default function LoginScreen() {
     const account = demoAccounts.find(
       (item) =>
         item.email.toLowerCase() === email.trim().toLowerCase() &&
-        item.password === password &&
-        item.id === idNumber.trim() &&
         (item.audience === audience ||
           (audience === "store" && item.role === "admin")),
     );
-    if (!account)
-      return Alert.alert(
-        "Login failed",
-        "Check the username, ID number, and password, then try again.",
-      );
+    if (!account) {
+      setFieldErrors({ email: "Incorrect username or email." });
+      return;
+    }
+    if (account.id !== idNumber.trim()) {
+      setFieldErrors({ idNumber: isStore ? "Incorrect USTP Store ID." : "Incorrect student number." });
+      return;
+    }
+    if (account.password !== password) {
+      setFieldErrors({ password: "Incorrect password." });
+      return;
+    }
     router.replace({
       pathname: account.role === "customer" ? "/student/dashboard" : "/store-owner/dashboard",
       params: { role: account.role, name: account.name },
@@ -95,32 +103,42 @@ export default function LoginScreen() {
               placeholder={isStore ? "32_ _ _ _ _ " : "202_ _ _ _ _ _ _"}
               placeholderTextColor="#8290A0"
               value={idNumber}
-              onChangeText={(value) =>
-                setIdNumber(value.replace(/\D/g, "").slice(0, isStore ? 7 : 10))
-              }
+              onChangeText={(value) => {
+                setIdNumber(value.replace(/\D/g, "").slice(0, isStore ? 7 : 10));
+                setFieldErrors((current) => ({ ...current, idNumber: undefined }));
+              }}
               keyboardType="number-pad"
               maxLength={isStore ? 7 : 10}
             />
+            {fieldErrors.idNumber ? <Text style={styles.fieldError}>{fieldErrors.idNumber}</Text> : null}
             <Text style={styles.label}>Username or email</Text>
             <TextInput
               style={styles.input}
               placeholder="Enter username"
               placeholderTextColor="#8290A0"
               value={email}
-              onChangeText={setEmail}
+              onChangeText={(value) => {
+                setEmail(value);
+                setFieldErrors((current) => ({ ...current, email: undefined }));
+              }}
               autoCapitalize="none"
               autoComplete="username"
             />
+            {fieldErrors.email ? <Text style={styles.fieldError}>{fieldErrors.email}</Text> : null}
             <Text style={styles.label}>Password</Text>
             <TextInput
               style={styles.input}
               placeholder="Enter password"
               placeholderTextColor="#8290A0"
               value={password}
-              onChangeText={setPassword}
+              onChangeText={(value) => {
+                setPassword(value);
+                setFieldErrors((current) => ({ ...current, password: undefined }));
+              }}
               secureTextEntry
               autoComplete="password"
             />
+            {fieldErrors.password ? <Text style={styles.fieldError}>{fieldErrors.password}</Text> : null}
             <TouchableOpacity style={styles.button} onPress={handleLogin}>
               <Text style={styles.buttonText}>Continue</Text>
             </TouchableOpacity>
@@ -194,6 +212,7 @@ const styles = StyleSheet.create({
     color: "#0B1F33",
     fontSize: 15,
   },
+  fieldError: { color: "#C62828", fontSize: 12, lineHeight: 17, marginTop: 4, marginBottom: 10, fontWeight: "600" },
   button: {
     backgroundColor: "#D9B45B",
     borderRadius: 13,

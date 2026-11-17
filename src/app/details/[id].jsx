@@ -101,19 +101,34 @@ export default function ProductDetailsScreen() {
               )}
 
               {isCustomer ? (
-                <TouchableOpacity
-                  style={styles.addToCartButton}
-                  onPress={() => {
+                <View style={styles.customerActions}>
+                  <TouchableOpacity
+                    style={styles.addToCartButton}
+                    onPress={() => {
                     if (hasSizes && !selectedSize) return;
                     const existing = store.cart.find((item) => item.id === product.id && item.size === selectedSize);
                     if (existing) existing.quantity = (existing.quantity || 1) + 1;
                     else store.cart.push({ ...product, size: selectedSize, quantity: 1 });
                     store.cartNotificationCount += 1;
-                    router.replace({ pathname: '/student/dashboard', params: { name: name || 'Student' } });
-                  }}
-                >
-                  <Text style={styles.addToCartText}>Add to cart</Text>
-                </TouchableOpacity>
+                    router.push({ pathname: '/student/cart', params: { name: name || 'Student' } });
+                    }}
+                  >
+                    <Text style={styles.addToCartText}>Add to cart</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={styles.customerBuyNowButton}
+                    onPress={() => {
+                      if (hasSizes && !selectedSize) return;
+                      const existing = store.cart.find((item) => item.id === product.id && item.size === selectedSize);
+                      if (existing) existing.quantity = (existing.quantity || 1) + 1;
+                      else store.cart.push({ ...product, size: selectedSize, quantity: 1 });
+                      store.cartNotificationCount += 1;
+                      router.push({ pathname: '/student/cart', params: { name: name || 'Student' } });
+                    }}
+                  >
+                    <Text style={styles.customerBuyNowText}>Buy now</Text>
+                  </TouchableOpacity>
+                </View>
               ) : (
                 <View style={styles.guestActions}>
                   <Link href="/access" asChild>
@@ -197,8 +212,11 @@ const styles = StyleSheet.create({
   sizeTextSelected: { color: '#18243A' },
   sku: { color: '#777D86', fontSize: 11, fontWeight: '700', letterSpacing: 0.6, marginTop: 4 },
   guestActions: { gap: 12, marginTop: 28, maxWidth: 420 },
+  customerActions: { marginTop: 0, maxWidth: 420 },
   addToCartButton: { alignItems: 'center', backgroundColor: '#1D273D', borderRadius: 999, marginTop: 28, maxWidth: 420, paddingVertical: 14 },
   addToCartText: { color: '#FFFFFF', fontSize: 14, fontWeight: '700' },
+  customerBuyNowButton: { alignItems: 'center', backgroundColor: '#D9B45B', borderRadius: 999, marginTop: 12, maxWidth: 420, paddingVertical: 14 },
+  customerBuyNowText: { color: '#111111', fontSize: 14, fontWeight: '600' },
   buyNowButton: { alignItems: 'center', backgroundColor: '#D9B45B', borderRadius: 999, maxWidth: 420, paddingVertical: 14 },
   buyNowText: { color: '#111111', fontSize: 14, fontWeight: '600' },
   notFound: { flex: 1, justifyContent: 'center', paddingVertical: 50 },
