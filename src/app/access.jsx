@@ -4,7 +4,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 const accountTypes = [
   { audience: "student", label: "Student" },
-  { audience: "store", label: "Store Owner" },
+  { audience: "store", label: "Display Center Admin" },
 ];
 
 export default function AccessScreen() {

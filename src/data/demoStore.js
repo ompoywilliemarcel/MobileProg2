@@ -1,4 +1,10 @@
 import { products as starterProducts } from "./products";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+
+const CREATED_ACCOUNTS_KEY = "ustp-wear.created-accounts";
+let accountsHydrated = false;
+let hydrationPromise;
+let createdAccounts = [];
 
 export const demoAccounts = [
   {
@@ -26,6 +32,44 @@ export const demoAccounts = [
     name: "Admins",
   },
 ];
+
+export const loadSavedAccounts = async () => {
+  if (accountsHydrated) return;
+  if (!hydrationPromise) {
+    hydrationPromise = (async () => {
+      const savedAccounts = await AsyncStorage.getItem(CREATED_ACCOUNTS_KEY);
+      if (savedAccounts) {
+        const parsedAccounts = JSON.parse(savedAccounts);
+        if (Array.isArray(parsedAccounts)) {
+          const existingEmails = new Set(demoAccounts.map((account) => account.email.toLowerCase()));
+          createdAccounts = parsedAccounts.filter((account) => {
+            const email = account?.email?.toLowerCase();
+            if (!email || existingEmails.has(email)) return false;
+            existingEmails.add(email);
+            return true;
+          });
+          demoAccounts.push(...createdAccounts);
+        }
+      }
+      accountsHydrated = true;
+    })().catch((error) => {
+      hydrationPromise = undefined;
+      throw error;
+    });
+  }
+  await hydrationPromise;
+};
+
+export const saveCreatedAccount = async (account) => {
+  await loadSavedAccounts();
+  const updatedAccounts = [...createdAccounts, account];
+  await AsyncStorage.setItem(
+    CREATED_ACCOUNTS_KEY,
+    JSON.stringify(updatedAccounts),
+  );
+  createdAccounts = updatedAccounts;
+  demoAccounts.push(account);
+};
 
 export const store = {
   products: [...starterProducts],

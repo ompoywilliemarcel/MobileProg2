@@ -375,15 +375,20 @@ export default function DashboardScreen({ fixedRole, fixedName } = {}) {
     setCartCount(0);
     router.push({ pathname: "/student/cart", params: { name } });
   };
-  const signOut = () =>
-    Alert.alert("Log out", "Are you sure you want to log out?", [
-      { text: "Cancel", style: "cancel" },
-      {
-        text: "Log out",
-        style: "destructive",
-        onPress: () => router.replace({ pathname: "/login", params: { audience: role === "customer" ? "student" : "store" } }),
-      },
-    ]);
+  const addCustomerProductToCart = (product) => {
+    const isAccessory = /accessor/i.test(product.category || "");
+    const hasSizes = product.hasSizes ?? (!isAccessory && !/lanyard/i.test(product.name));
+    const size = hasSizes ? (product.sizes || ["S", "M", "L", "XL"])[0] : null;
+    const existingItem = store.cart.find((item) => item.id === product.id && item.size === size);
+    const nextCart = existingItem
+      ? store.cart.map((item) => item === existingItem ? { ...item, quantity: (item.quantity || 1) + 1 } : item)
+      : [...store.cart, { ...product, size, quantity: 1 }];
+    store.cart = nextCart;
+    store.cartNotificationCount = (store.cartNotificationCount || 0) + 1;
+    setCart(nextCart);
+    setCartCount(store.cartNotificationCount);
+  };
+  const signOut = () => router.replace("/");
 
   const studentCategories = [
     "All",
@@ -507,14 +512,19 @@ export default function DashboardScreen({ fixedRole, fixedName } = {}) {
                 : undefined
             }
           >
-            <Image
-              source={imageSource(editable && editingProductId === p.id ? productDraft.image : p.image)}
-              resizeMode="contain"
-              style={[
-                styles.productImage,
-                role === "customer" && styles.studentProductImage,
-              ]}
-            />
+            <View style={role === "customer" ? styles.studentProductRow : undefined}>
+              <Image
+                source={imageSource(editable && editingProductId === p.id ? productDraft.image : p.image)}
+                resizeMode="contain"
+                style={[
+                  styles.productImage,
+                  role === "customer" && styles.studentProductImage,
+                ]}
+              />
+              <View style={role === "customer" ? styles.studentProductInfo : undefined}>
+            {role === "customer" && (
+              <View style={styles.studentMerchTag}><Text style={styles.studentMerchTagText}>MERCH DROP</Text></View>
+            )}
             {editable && editingProductId === p.id ? (
               <>
                 <Text style={styles.fieldLabel}>Product picture</Text>
@@ -620,8 +630,13 @@ export default function DashboardScreen({ fixedRole, fixedName } = {}) {
                 <Text style={styles.productCategory}>
                   {p.category || "Campus merch"}
                 </Text>
-                <Text style={styles.productName}>{p.name}</Text>
-                <Text style={styles.editPrice}>{p.price}</Text>
+                <Text style={[styles.productName, role === "customer" && styles.studentProductName]}>{p.name}</Text>
+                {role === "customer" && (
+                  <Text style={styles.studentProductDescription} numberOfLines={2}>
+                    {p.description || "Made for everyday comfort and school spirit."}
+                  </Text>
+                )}
+                <Text style={role === "customer" ? styles.studentProductPrice : styles.editPrice}>{p.price}</Text>
                 {editable && (
                   <Text style={styles.productSummary} numberOfLines={3}>
                     {p.description || "No product details have been added yet."}
@@ -646,6 +661,28 @@ export default function DashboardScreen({ fixedRole, fixedName } = {}) {
                   onPress={() => removeProduct(p)}
                 />
               </>
+            ) : role === "customer" ? (
+              <View style={styles.studentPurchaseActions}>
+                <TouchableOpacity
+                  style={styles.studentAddToCart}
+                  accessibilityRole="button"
+                  accessibilityLabel={`Add ${p.name} to cart`}
+                  onPress={() => addCustomerProductToCart(p)}
+                >
+                  <Text style={styles.studentAddToCartText}>Add to cart</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.studentBuyNow}
+                  accessibilityRole="button"
+                  accessibilityLabel={`Buy ${p.name} now`}
+                  onPress={() => {
+                    addCustomerProductToCart(p);
+                    router.push({ pathname: "/student/cart", params: { name } });
+                  }}
+                >
+                  <Text style={styles.studentBuyNowText}>Buy now</Text>
+                </TouchableOpacity>
+              </View>
             ) : !editable ? (
               <Action
                 title={role === "customer" ? "View details" : "Choose size"}
@@ -657,6 +694,8 @@ export default function DashboardScreen({ fixedRole, fixedName } = {}) {
                 }
               />
             ) : null}
+              </View>
+            </View>
           </Panel>
         ))}
       </View>
@@ -1598,19 +1637,37 @@ const styles = StyleSheet.create({
   },
   studentProductGrid: { rowGap: 12 },
   studentProductCard: {
-    borderRadius: 17,
-    borderColor: "#E7E2D6",
-    padding: 10,
+    width: "48.5%",
+    minHeight: 390,
+    borderRadius: 18,
+    borderWidth: 2,
+    borderColor: "#D9B45B",
+    padding: 0,
+    overflow: "hidden",
     shadowColor: "#000",
     shadowOpacity: 0.18,
     shadowRadius: 10,
     elevation: 4,
   },
   studentProductImage: {
-    height: 132,
-    borderRadius: 13,
-    backgroundColor: "#F1F4F5",
+    width: "50%",
+    height: 390,
+    borderRadius: 0,
+    marginBottom: 0,
+    backgroundColor: "#F8F7F3",
   },
+  studentProductRow: { flex: 1, flexDirection: "row" },
+  studentProductInfo: { flex: 1, paddingHorizontal: 18, paddingTop: 18, paddingBottom: 94, backgroundColor: "#FFFFFF" },
+  studentMerchTag: { alignSelf: "flex-end", backgroundColor: "#F1F0EC", borderRadius: 999, paddingHorizontal: 10, paddingVertical: 6, marginBottom: 10 },
+  studentMerchTagText: { color: "#0B1F33", fontSize: 9, fontWeight: "900", letterSpacing: 0.3 },
+  studentProductDescription: { color: "#303640", fontSize: 12, fontStyle: "italic", lineHeight: 17, marginTop: 7 },
+  studentProductName: { fontSize: 27, lineHeight: 32, minHeight: 0, marginTop: 8 },
+  studentProductPrice: { color: "#0B1F33", fontSize: 24, fontWeight: "900", marginTop: 10 },
+  studentPurchaseActions: { position: "absolute", left: 18, right: 14, bottom: 10, gap: 7 },
+  studentAddToCart: { alignItems: "center", backgroundColor: "#1D273D", borderRadius: 999, paddingVertical: 11 },
+  studentAddToCartText: { color: "#FFFFFF", fontSize: 13, fontWeight: "800" },
+  studentBuyNow: { alignItems: "center", backgroundColor: "#D9B45B", borderRadius: 999, paddingVertical: 11 },
+  studentBuyNowText: { color: "#0B1F33", fontSize: 13, fontWeight: "800" },
   studentOrderCard: {
     borderRadius: 15,
     borderColor: "#E7E2D6",

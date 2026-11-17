@@ -12,7 +12,7 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { demoAccounts } from "../data/demoStore";
+import { demoAccounts, loadSavedAccounts } from "../data/demoStore";
 
 export default function LoginScreen() {
   const router = useRouter();
@@ -22,7 +22,7 @@ export default function LoginScreen() {
   const [idNumber, setIdNumber] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const handleLogin = () => {
+  const handleLogin = async () => {
     const validId = isStore
       ? /^32\d{5}$/.test(idNumber.trim())
       : /^202\d{7}$/.test(idNumber.trim());
@@ -33,6 +33,14 @@ export default function LoginScreen() {
           ? "Enter your complete store ID (32 followed by 5 digits)."
           : "Enter your complete student ID (202 followed by 7 digits).",
       );
+    try {
+      await loadSavedAccounts();
+    } catch {
+      return Alert.alert(
+        "Unable to load accounts",
+        "Please try again. Your saved account data could not be loaded.",
+      );
+    }
     const account = demoAccounts.find(
       (item) =>
         item.email.toLowerCase() === email.trim().toLowerCase() &&

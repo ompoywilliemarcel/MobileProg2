@@ -11,7 +11,7 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { demoAccounts, store } from "../data/demoStore";
+import { demoAccounts, loadSavedAccounts, saveCreatedAccount, store } from "../data/demoStore";
 
 export default function SignupScreen() {
   const router = useRouter();
@@ -32,7 +32,7 @@ export default function SignupScreen() {
     setErrorMessage("");
   }, [audience]);
 
-  const handleCreateAccount = () => {
+  const handleCreateAccount = async () => {
     if (!fullName || !email || !password || !confirmPassword) {
       setErrorMessage("Please fill out all required fields.");
       return;
@@ -55,6 +55,13 @@ export default function SignupScreen() {
       return;
     }
 
+    try {
+      await loadSavedAccounts();
+    } catch {
+      setErrorMessage("Unable to load saved accounts. Please try again.");
+      return;
+    }
+
     const normalizedEmail = email.trim().toLowerCase();
     if (
       demoAccounts.some(
@@ -66,14 +73,20 @@ export default function SignupScreen() {
     }
 
     const role = isStore ? "user" : "customer";
-    demoAccounts.push({
+    const account = {
       email: normalizedEmail,
       password,
       role,
       audience,
       id: idNumber.trim(),
       name: fullName.trim(),
-    });
+    };
+    try {
+      await saveCreatedAccount(account);
+    } catch {
+      setErrorMessage("Unable to save your account. Please try again.");
+      return;
+    }
     store.users.unshift({
       name: fullName.trim(),
       email: normalizedEmail,
@@ -113,11 +126,11 @@ export default function SignupScreen() {
               <Text style={styles.badgeText}>Fresh arrivals</Text>
             </View>
             <Text style={styles.title}>
-              Create {isStore ? "store" : "student"} account
+              Create {isStore ? "admin" : "student"} account
             </Text>
             <Text style={styles.subtitle}>
               {isStore
-                ? "Set up your USTP Store access."
+                ? "Set up your Display Center Admin access."
                 : "Join and shop your favorite campus merch."}
             </Text>
           </View>
@@ -125,7 +138,7 @@ export default function SignupScreen() {
           <View style={styles.accountTypePicker}>
             <Text style={styles.accountTypeLabel}>ACCOUNT TYPE</Text>
             <View style={styles.accountTypeOptions}>
-              {[{ key: "student", label: "Student" }, { key: "store", label: "Store owner" }].map((option) => (
+              {[{ key: "student", label: "Student" }, { key: "store", label: "Display Center Admin" }].map((option) => (
                 <Link key={option.key} href={{ pathname: "/signup", params: { audience: option.key } }} asChild>
                   <TouchableOpacity style={StyleSheet.flatten([styles.accountTypeOption, audience === option.key && styles.accountTypeOptionActive])} accessibilityRole="button" accessibilityState={{ selected: audience === option.key }}>
                     <Text style={[styles.accountTypeOptionText, audience === option.key && styles.accountTypeOptionTextActive]}>{option.label}</Text>
