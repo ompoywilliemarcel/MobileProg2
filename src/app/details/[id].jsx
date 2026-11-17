@@ -1,4 +1,4 @@
-import { Link, useLocalSearchParams, useRouter } from 'expo-router';
+﻿import { Link, useLocalSearchParams, useRouter } from 'expo-router';
 import { useState } from 'react';
 import {
   Image,
@@ -11,12 +11,13 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { store } from '../../data/demoStore';
+import { products as catalogProducts } from '../../data/products';
 
 export default function ProductDetailsScreen() {
   const { id, audience, name } = useLocalSearchParams();
   const productId = Array.isArray(id) ? id[0] : id;
   const isCustomer = audience === 'customer';
-  const product = store.products.find((item) => item.id === Number(productId));
+  const product = [...store.products, ...catalogProducts].find((item) => item.id === Number(productId));
   const isAccessory = product && /accessor/i.test(product.category || '');
   const hasSizes = product && (product.hasSizes ?? (!isAccessory && !/lanyard/i.test(product.name)));
   const sizes = hasSizes ? (product.sizes || ['S', 'M', 'L', 'XL']) : [];
@@ -24,6 +25,7 @@ export default function ProductDetailsScreen() {
   const [detailsOpen, setDetailsOpen] = useState(false);
   const { width } = useWindowDimensions();
   const isWide = width >= 760;
+  const wideImageHeight = Math.min(610, width * 0.36);
   const router = useRouter();
   const goBack = () => {
     if (router.canGoBack()) router.back();
@@ -40,14 +42,14 @@ export default function ProductDetailsScreen() {
             accessibilityRole="button"
             accessibilityLabel="Back to products"
           >
-            <Text style={styles.backButtonText}>‹  Back to products</Text>
+            <Text style={styles.backButtonText}>&lt;  Back to products</Text>
           </TouchableOpacity>
           {product && <View style={styles.badge}><Text style={styles.badgeText}>MERCH DROP</Text></View>}
         </View>
 
         {product ? (
           <View style={[styles.productLayout, isWide && styles.productLayoutWide]}>
-            <View style={[styles.productImage, isWide && styles.productImageWide]}>
+            <View style={[styles.productImage, isWide && styles.productImageWide, isWide && { height: wideImageHeight }]}>
               <Image source={product.image} style={styles.productImageFile} resizeMode="contain" />
             </View>
 
@@ -66,7 +68,7 @@ export default function ProductDetailsScreen() {
                   accessibilityRole="button"
                   accessibilityLabel={detailsOpen ? 'Hide product options' : 'Show product options'}
                 >
-                  <Text style={styles.detailsText}>{detailsOpen ? 'Hide options  ‹' : 'Details  ›'}</Text>
+                  <Text style={styles.detailsText}>{detailsOpen ? 'Hide options  <' : 'Details  >'}</Text>
                 </TouchableOpacity>
               </View>
 
@@ -98,7 +100,7 @@ export default function ProductDetailsScreen() {
                 </View>
               )}
 
-              {isCustomer && (
+              {isCustomer ? (
                 <TouchableOpacity
                   style={styles.addToCartButton}
                   onPress={() => {
@@ -112,6 +114,19 @@ export default function ProductDetailsScreen() {
                 >
                   <Text style={styles.addToCartText}>Add to cart</Text>
                 </TouchableOpacity>
+              ) : (
+                <View style={styles.guestActions}>
+                  <Link href="/access" asChild>
+                    <TouchableOpacity style={styles.addToCartButton} accessibilityRole="button">
+                      <Text style={styles.addToCartText}>ADD TO CART</Text>
+                    </TouchableOpacity>
+                  </Link>
+                  <Link href="/access" asChild>
+                    <TouchableOpacity style={styles.buyNowButton} accessibilityRole="button">
+                      <Text style={styles.buyNowText}>BUY NOW</Text>
+                    </TouchableOpacity>
+                  </Link>
+                </View>
               )}
             </View>
           </View>
@@ -133,7 +148,7 @@ export default function ProductDetailsScreen() {
 
 const styles = StyleSheet.create({
   safeArea: { flex: 1, backgroundColor: '#FFFFFF' },
-  content: { flexGrow: 1, paddingHorizontal: 28, paddingVertical: 20 },
+  content: { flexGrow: 1, paddingHorizontal: 38, paddingVertical: 28 },
   navigationRow: {
     alignItems: 'center',
     flexDirection: 'row',
@@ -145,12 +160,12 @@ const styles = StyleSheet.create({
   badge: { backgroundColor: '#F1F0EC', borderRadius: 999, paddingHorizontal: 12, paddingVertical: 6 },
   badgeText: { color: '#273146', fontSize: 10, fontWeight: '700', letterSpacing: 0.3 },
   productLayout: { flexGrow: 1, backgroundColor: '#FFFFFF' },
-  productLayoutWide: { flexDirection: 'row', alignItems: 'stretch', gap: 36, minHeight: 540 },
+  productLayoutWide: { flexDirection: 'row', alignItems: 'center', gap: 36, minHeight: 350 },
   productImage: {
     alignItems: 'center',
     backgroundColor: '#FFFFFF',
     borderRadius: 20,
-    height: 310,
+    height: 340,
     justifyContent: 'center',
     padding: 18,
     shadowColor: '#152238',
@@ -159,14 +174,14 @@ const styles = StyleSheet.create({
     shadowRadius: 22,
     elevation: 7,
   },
-  productImageWide: { flex: 1, minHeight: 540 },
+  productImageWide: { flex: 1, minHeight: 0, padding: 28 },
   productImageFile: { width: '100%', height: '100%' },
-  productInfo: { flex: 1, justifyContent: 'center', paddingVertical: 30 },
+  productInfo: { flex: 1, justifyContent: 'center', paddingVertical: 18 },
   category: { color: '#81858B', fontSize: 13, fontWeight: '700', letterSpacing: 1.1 },
-  title: { color: '#18243A', fontSize: 40, fontWeight: '800', letterSpacing: -1.1, lineHeight: 48, marginTop: 10 },
-  description: { color: '#424A57', fontSize: 16, lineHeight: 25, marginTop: 18, maxWidth: 680 },
-  priceRow: { alignItems: 'center', flexDirection: 'row', gap: 24, marginTop: 34 },
-  price: { color: '#18243A', fontSize: 23, fontWeight: '800' },
+  title: { color: '#18243A', fontSize: 32, fontWeight: '800', letterSpacing: -1.1, lineHeight: 39, marginTop: 8 },
+  description: { color: '#59616C', fontSize: 14, lineHeight: 22, marginTop: 12, maxWidth: 680 },
+  priceRow: { alignItems: 'center', flexDirection: 'row', gap: 20, marginTop: 20 },
+  price: { color: '#18243A', fontSize: 19, fontWeight: '800' },
   detailsLink: { paddingHorizontal: 2, paddingVertical: 10 },
   detailsText: { color: '#526071', fontSize: 13, fontWeight: '700' },
   detailsPanel: { borderTopColor: '#ECEAE4', borderTopWidth: 1, marginTop: 18, paddingTop: 18 },
@@ -181,7 +196,10 @@ const styles = StyleSheet.create({
   sizeText: { color: '#263246', fontSize: 13, fontWeight: '700' },
   sizeTextSelected: { color: '#18243A' },
   sku: { color: '#777D86', fontSize: 11, fontWeight: '700', letterSpacing: 0.6, marginTop: 4 },
-  addToCartButton: { alignItems: 'center', backgroundColor: '#E5BD55', borderRadius: 999, marginTop: 30, maxWidth: 420, paddingVertical: 16 },
-  addToCartText: { color: '#0B1F33', fontSize: 15, fontWeight: '800' },
+  guestActions: { gap: 12, marginTop: 28, maxWidth: 420 },
+  addToCartButton: { alignItems: 'center', backgroundColor: '#1D273D', borderRadius: 999, marginTop: 28, maxWidth: 420, paddingVertical: 14 },
+  addToCartText: { color: '#FFFFFF', fontSize: 14, fontWeight: '700' },
+  buyNowButton: { alignItems: 'center', backgroundColor: '#D9B45B', borderRadius: 999, maxWidth: 420, paddingVertical: 14 },
+  buyNowText: { color: '#111111', fontSize: 14, fontWeight: '600' },
   notFound: { flex: 1, justifyContent: 'center', paddingVertical: 50 },
 });

@@ -4,7 +4,7 @@ export const products = [
     name: "PathFit Uniform",
     category: "Apparel",
     price: "\u20B1799",
-    description: "Move with confidence in the PathFit Uniform. Its bold school colors and breathable, comfortable fit make it ready for PE, campus activities, and every active day.",
+    description: "USTP Official PathFit Uniform\nSet includes: Shirt + Jogger Pants",
     color: "#000032",
     image: require("../../assets/products/pathfit.jpg")
   },

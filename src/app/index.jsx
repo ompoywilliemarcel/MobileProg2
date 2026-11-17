@@ -94,18 +94,27 @@ export default function HomeScreen() {
                   <Text style={styles.productName} numberOfLines={2}>
                     {product.name}
                   </Text>
+                  <Text style={styles.productDescription} numberOfLines={2}>
+                    {product.description}
+                  </Text>
                   <View style={styles.productFooter}>
                     <Text style={styles.productPrice}>{product.price}</Text>
-                    <Text style={styles.detailsHint}>Details ›</Text>
                   </View>
                 </View>
               </TouchableOpacity>
               </Link>
-              <Link href="/access" asChild>
-                <TouchableOpacity style={styles.addCartButton} accessibilityRole="button" accessibilityLabel={`Add ${product.name} to cart`}>
-                  <Text style={styles.addCartText}>Add to cart</Text>
-                </TouchableOpacity>
-              </Link>
+              <View style={styles.productActions}>
+                <Link href="/access" asChild>
+                  <TouchableOpacity style={styles.addCartButton} accessibilityRole="button" accessibilityLabel={`Add ${product.name} to cart`}>
+                    <Text style={styles.addCartText}>Add to cart</Text>
+                  </TouchableOpacity>
+                </Link>
+                <Link href="/access" asChild>
+                  <TouchableOpacity style={styles.buyNowButton} accessibilityRole="button" accessibilityLabel={`Buy ${product.name} now`}>
+                    <Text style={styles.buyNowText}>Buy now</Text>
+                  </TouchableOpacity>
+                </Link>
+              </View>
             </View>
           ))}
         </View>
@@ -233,7 +242,7 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     overflow: 'hidden',
     width: '48%',
-    minHeight: 260,
+    minHeight: 310,
     shadowColor: '#0B1F33',
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.08,
@@ -248,7 +257,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     width: '50%',
     height: '100%',
-    minHeight: 260,
+    minHeight: 310,
     backgroundColor: '#F2F1ED',
     overflow: 'hidden',
     position: 'relative',
@@ -289,8 +298,8 @@ const styles = StyleSheet.create({
   productTag: {
     backgroundColor: '#F1F0EC',
     borderRadius: 999,
-    alignSelf: 'flex-start',
-    marginBottom: 18,
+    alignSelf: 'flex-end',
+    marginBottom: 10,
     paddingHorizontal: 8,
     paddingVertical: 5,
   },
@@ -302,41 +311,44 @@ const styles = StyleSheet.create({
   },
   productInfo: {
     flex: 1,
-    justifyContent: 'center',
+    justifyContent: 'flex-start',
     backgroundColor: '#FFFFFF',
     padding: 14,
-    paddingBottom: 62,
+    paddingBottom: 88,
   },
   productCategory: {
     color: '#526579',
-    fontSize: 9,
+    fontSize: 8,
     fontWeight: '700',
     letterSpacing: 0.6,
     textTransform: 'uppercase',
   },
   productName: {
     color: '#0B1F33',
-    fontSize: 14,
-    fontWeight: '700',
-    lineHeight: 18,
+    fontSize: 23,
+    fontWeight: '800',
+    lineHeight: 27,
     marginTop: 5,
     minHeight: 0,
   },
+  productDescription: { color: '#303640', fontSize: 10, fontStyle: 'italic', lineHeight: 13, marginTop: 8 },
   productFooter: {
     alignItems: 'center',
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginTop: 'auto',
-    paddingTop: 16,
+    marginTop: 5,
+    paddingTop: 0,
   },
   productPrice: {
     color: '#0B1F33',
-    fontSize: 17,
+    fontSize: 22,
     fontWeight: '800',
   },
-  detailsHint: { color: '#526579', fontSize: 11, fontWeight: '700' },
-  addCartButton: { alignItems: 'center', backgroundColor: '#D9B45B', position: 'absolute', right: 12, bottom: 12, width: '45%', borderRadius: 999, paddingVertical: 12 },
-  addCartText: { color: '#0B1F33', fontSize: 12, fontWeight: '800' },
+  productActions: { position: 'absolute', right: 10, bottom: 8, left: '53%', flexDirection: 'column', gap: 6 },
+  addCartButton: { alignItems: 'center', backgroundColor: '#1D273D', borderRadius: 999, paddingVertical: 9 },
+  buyNowButton: { alignItems: 'center', backgroundColor: '#D9B45B', borderRadius: 999, paddingVertical: 9 },
+  addCartText: { color: '#FFFFFF', fontSize: 12, fontWeight: '800' },
+  buyNowText: { color: '#0B1F33', fontSize: 12, fontWeight: '800' },
   signupLink: { alignItems: 'center', backgroundColor: '#D9B45B', borderRadius: 14, paddingVertical: 16, marginTop: 20, marginBottom: 12 },
   signupLinkText: {
     color: '#0B1F33',
