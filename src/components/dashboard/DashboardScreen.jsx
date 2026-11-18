@@ -535,7 +535,7 @@ export default function DashboardScreen({ fixedRole, fixedName } = {}) {
             <View style={role === "customer" ? styles.studentProductRow : undefined}>
               <Image
                 source={imageSource(editable && editingProductId === p.id ? productDraft.image : p.image)}
-                resizeMode="contain"
+                resizeMode={role === "customer" ? "cover" : "contain"}
                 style={[
                   styles.productImage,
                   role === "customer" && styles.studentProductImage,
@@ -1669,14 +1669,14 @@ const styles = StyleSheet.create({
     elevation: 4,
   },
   studentProductImage: {
-    width: "50%",
-    height: 390,
+    width: "100%",
+    height: 205,
     borderRadius: 0,
     marginBottom: 0,
-    backgroundColor: "#F8F7F3",
+    backgroundColor: "#FFFFFF",
   },
-  studentProductRow: { flex: 1, flexDirection: "row" },
-  studentProductInfo: { flex: 1, minHeight: 390, position: "relative", paddingHorizontal: 18, paddingTop: 18, paddingBottom: 94, backgroundColor: "#FFFFFF" },
+  studentProductRow: { flex: 1, flexDirection: "column" },
+  studentProductInfo: { flex: 1, minHeight: 0, position: "relative", paddingHorizontal: 18, paddingTop: 12, paddingBottom: 94, backgroundColor: "#FFFFFF" },
   studentMerchTag: { alignSelf: "flex-end", backgroundColor: "#F1F0EC", borderRadius: 999, paddingHorizontal: 10, paddingVertical: 6, marginBottom: 10 },
   studentMerchTagText: { color: "#0B1F33", fontSize: 9, fontWeight: "900", letterSpacing: 0.3 },
   studentProductDescription: { color: "#303640", fontSize: 12, fontStyle: "italic", lineHeight: 17, marginTop: 7 },
