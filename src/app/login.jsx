@@ -12,7 +12,7 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { demoAccounts, loadSavedAccounts } from "../data/demoStore";
+import { demoAccounts, isAccountDisabled, loadSavedAccounts, recordActivity, setAuthenticatedAccount } from "../data/demoStore";
 
 export default function LoginScreen() {
   const router = useRouter();
@@ -62,6 +62,12 @@ export default function LoginScreen() {
       setFieldErrors({ password: "Incorrect password." });
       return;
     }
+    if (await isAccountDisabled(account.email)) {
+      setFieldErrors({ email: "This account is disabled. Contact the administrator." });
+      return;
+    }
+    await setAuthenticatedAccount(account.email);
+    await recordActivity("User Login", account.name, "Logged into the application.");
     router.replace({
       pathname: account.role === "customer" ? "/student/dashboard" : "/store-owner/dashboard",
       params: { role: account.role, name: account.name },

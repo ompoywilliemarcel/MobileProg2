@@ -2,9 +2,12 @@ import { products as starterProducts } from "./products";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const CREATED_ACCOUNTS_KEY = "ustp-wear.created-accounts";
+const ADMIN_DATA_KEY = "ustp-wear.admin-data";
 let accountsHydrated = false;
 let hydrationPromise;
 let createdAccounts = [];
+let adminData = { disabledEmails: [], deletedEmails: [], activities: [] };
+let authenticatedEmail = null;
 
 export const demoAccounts = [
   {
@@ -38,6 +41,15 @@ export const loadSavedAccounts = async () => {
   if (!hydrationPromise) {
     hydrationPromise = (async () => {
       const savedAccounts = await AsyncStorage.getItem(CREATED_ACCOUNTS_KEY);
+      const savedAdminData = await AsyncStorage.getItem(ADMIN_DATA_KEY);
+      if (savedAdminData) {
+        const parsedData = JSON.parse(savedAdminData);
+        adminData = {
+          disabledEmails: Array.isArray(parsedData.disabledEmails) ? parsedData.disabledEmails : [],
+          deletedEmails: Array.isArray(parsedData.deletedEmails) ? parsedData.deletedEmails : [],
+          activities: Array.isArray(parsedData.activities) ? parsedData.activities : [],
+        };
+      }
       if (savedAccounts) {
         const parsedAccounts = JSON.parse(savedAccounts);
         if (Array.isArray(parsedAccounts)) {
@@ -51,6 +63,10 @@ export const loadSavedAccounts = async () => {
           demoAccounts.push(...createdAccounts);
         }
       }
+      const deletedEmails = new Set(adminData.deletedEmails.map((email) => email.toLowerCase()));
+      for (let index = demoAccounts.length - 1; index >= 0; index -= 1) {
+        if (deletedEmails.has(demoAccounts[index].email.toLowerCase())) demoAccounts.splice(index, 1);
+      }
       accountsHydrated = true;
     })().catch((error) => {
       hydrationPromise = undefined;
@@ -62,6 +78,11 @@ export const loadSavedAccounts = async () => {
 
 export const saveCreatedAccount = async (account) => {
   await loadSavedAccounts();
+  account.joined = new Date().toLocaleDateString("en-PH", {
+    month: "short",
+    day: "2-digit",
+    year: "numeric",
+  });
   const updatedAccounts = [...createdAccounts, account];
   await AsyncStorage.setItem(
     CREATED_ACCOUNTS_KEY,
@@ -69,12 +90,117 @@ export const saveCreatedAccount = async (account) => {
   );
   createdAccounts = updatedAccounts;
   demoAccounts.push(account);
+  await recordActivity("User Registration", account.name, `Registered a ${account.role} account.`);
+};
+
+const saveAdminData = () => AsyncStorage.setItem(ADMIN_DATA_KEY, JSON.stringify(adminData));
+
+const appendActivity = (type, user, description) => {
+  adminData.activities.unshift({
+    id: `${Date.now()}-${Math.random().toString(36).slice(2)}`,
+    type,
+    user: user || "Unknown user",
+    description,
+    timestamp: new Date().toISOString(),
+  });
+  adminData.activities = adminData.activities.slice(0, 500);
+};
+
+export const recordActivity = async (type, user, description) => {
+  await loadSavedAccounts();
+  appendActivity(type, user, description);
+  await saveAdminData();
+};
+
+export const getActivityLogs = async () => {
+  await loadSavedAccounts();
+  await requireAdminSession();
+  return [...adminData.activities];
+};
+
+export const getRegisteredAccounts = async () => {
+  await loadSavedAccounts();
+  await requireAdminSession();
+  return demoAccounts
+    .filter((account) => account.role !== "admin")
+    .map((account) => ({
+      name: account.name || account.email,
+      email: account.email,
+      id: account.id,
+      role: account.role,
+      joined: account.joined || "—",
+      disabled: adminData.disabledEmails.includes(account.email.toLowerCase()),
+    }));
+};
+
+export const isAccountDisabled = async (email) => {
+  await loadSavedAccounts();
+  return adminData.disabledEmails.includes(String(email).toLowerCase());
+};
+
+export const setAuthenticatedAccount = async (email) => {
+  await loadSavedAccounts();
+  const account = demoAccounts.find((item) => item.email.toLowerCase() === String(email).toLowerCase());
+  if (!account || adminData.disabledEmails.includes(account.email.toLowerCase())) {
+    throw new Error("Account is unavailable.");
+  }
+  authenticatedEmail = account.email.toLowerCase();
+};
+
+export const clearAuthenticatedAccount = () => {
+  authenticatedEmail = null;
+};
+
+const requireAdminSession = async () => {
+  const account = demoAccounts.find((item) => item.email.toLowerCase() === authenticatedEmail);
+  if (!account || account.role !== "admin" || adminData.disabledEmails.includes(account.email.toLowerCase())) {
+    throw new Error("Admin access required.");
+  }
+};
+
+export const isEmailDeleted = async (email) => {
+  await loadSavedAccounts();
+  return adminData.deletedEmails.includes(String(email).toLowerCase());
+};
+
+export const manageRegisteredAccount = async (email, action) => {
+  await loadSavedAccounts();
+  await requireAdminSession();
+  const normalizedEmail = String(email).toLowerCase();
+  const account = demoAccounts.find((item) => item.email.toLowerCase() === normalizedEmail);
+  if (!account || account.role === "admin") throw new Error("This account cannot be managed.");
+
+  if (action === "disable" || action === "enable") {
+    const disabledEmails = new Set(adminData.disabledEmails);
+    if (action === "disable") disabledEmails.add(normalizedEmail);
+    else disabledEmails.delete(normalizedEmail);
+    adminData.disabledEmails = [...disabledEmails];
+    appendActivity("Account Management", account.name, `Admin ${action}d the account ${account.email}.`);
+    await saveAdminData();
+    return;
+  }
+
+  if (action !== "delete") throw new Error("Unknown account action.");
+  adminData.disabledEmails = adminData.disabledEmails.filter((item) => item !== normalizedEmail);
+  adminData.deletedEmails = [...new Set([...adminData.deletedEmails, normalizedEmail])];
+  appendActivity("Account Management", account.name, `Admin permanently deleted ${account.email}.`);
+  createdAccounts = createdAccounts.filter((item) => item.email.toLowerCase() !== normalizedEmail);
+  for (let index = demoAccounts.length - 1; index >= 0; index -= 1) {
+    if (demoAccounts[index].email.toLowerCase() === normalizedEmail) demoAccounts.splice(index, 1);
+  }
+  await AsyncStorage.multiSet([
+    [ADMIN_DATA_KEY, JSON.stringify(adminData)],
+    [CREATED_ACCOUNTS_KEY, JSON.stringify(createdAccounts)],
+  ]);
 };
 
 export const store = {
   products: [...starterProducts],
   cart: [],
   cartNotificationCount: 0,
+  checkoutItems: [],
+  checkoutPickup: '',
+  checkoutDirect: false,
   users: [
     {
       name: "Alex Student",

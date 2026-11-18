@@ -119,11 +119,7 @@ export default function ProductDetailsScreen() {
                     style={styles.customerBuyNowButton}
                     onPress={() => {
                       if (hasSizes && !selectedSize) return;
-                      const existing = store.cart.find((item) => item.id === product.id && item.size === selectedSize);
-                      if (existing) existing.quantity = (existing.quantity || 1) + 1;
-                      else store.cart.push({ ...product, size: selectedSize, quantity: 1 });
-                      store.cartNotificationCount += 1;
-                      router.push({ pathname: '/student/cart', params: { name: name || 'Student' } });
+                      router.push({ pathname: '/student/checkout', params: { name: name || 'Student', productId: String(product.id), size: selectedSize || '' } });
                     }}
                   >
                     <Text style={styles.customerBuyNowText}>Buy now</Text>

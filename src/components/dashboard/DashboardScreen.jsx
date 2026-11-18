@@ -13,12 +13,12 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import * as ImagePicker from "expo-image-picker";
-import { money, productAmount, store } from "../../data/demoStore";
+import { clearAuthenticatedAccount, getActivityLogs, getRegisteredAccounts, manageRegisteredAccount, money, productAmount, recordActivity, store } from "../../data/demoStore";
 
 const tabsFor = {
   customer: ["Shop", "Orders"],
   user: ["Overview", "Products", "Orders", "Reports"],
-  admin: ["Overview", "Products", "Orders", "People", "Reports"],
+  admin: ["Overview", "Products", "Orders", "People", "Activity Logs", "Reports"],
 };
 const labelFor = {
   customer: "STUDENT SHOP",
@@ -77,10 +77,23 @@ export default function DashboardScreen({ fixedRole, fixedName } = {}) {
   const [refresh, setRefresh] = useState(0);
   const [cart, setCart] = useState(store.cart);
   const [cartCount, setCartCount] = useState(store.cartNotificationCount || 0);
+  const [registeredAccounts, setRegisteredAccounts] = useState([]);
+  const [activityLogs, setActivityLogs] = useState([]);
+  const refreshAdminData = useCallback(async () => {
+    if (role !== "admin") return;
+    try {
+      const [accounts, activities] = await Promise.all([getRegisteredAccounts(), getActivityLogs()]);
+      setRegisteredAccounts(accounts);
+      setActivityLogs(activities);
+    } catch {
+      Alert.alert("Unable to load admin data", "Please try again.");
+    }
+  }, [role]);
   useFocusEffect(
     useCallback(() => {
       setCartCount(store.cartNotificationCount || 0);
-    }, []),
+      refreshAdminData();
+    }, [refreshAdminData]),
   );
   const [payment, setPayment] = useState("GCash");
   const [reservationDate, setReservationDate] = useState("Nov 12, 2026");
@@ -197,6 +210,7 @@ export default function DashboardScreen({ fixedRole, fixedName } = {}) {
           text: "Add product",
           onPress: () => {
             products.push(product);
+            recordActivity("Product Change", name, `Added product ${product.name}.`).then(refreshAdminData).catch(() => {});
             resetNewProduct();
             bump();
             Alert.alert(
@@ -263,6 +277,7 @@ export default function DashboardScreen({ fixedRole, fixedName } = {}) {
           text: "Save changes",
           onPress: () => {
             Object.assign(product, updated);
+            recordActivity("Product Change", name, `Updated product ${updated.name}.`).then(refreshAdminData).catch(() => {});
             setEditingProductId(null);
             setProductDraft(null);
             bump();
@@ -284,6 +299,7 @@ export default function DashboardScreen({ fixedRole, fixedName } = {}) {
           onPress: () => {
             const index = products.findIndex((item) => item.id === product.id);
             if (index >= 0) products.splice(index, 1);
+            recordActivity("Product Change", name, `Deleted product ${product.name}.`).then(refreshAdminData).catch(() => {});
             if (editingProductId === product.id) {
               setEditingProductId(null);
               setProductDraft(null);
@@ -298,7 +314,7 @@ export default function DashboardScreen({ fixedRole, fixedName } = {}) {
       ],
     );
   };
-  const placeOrder = () => {
+  const placeOrder = async () => {
     if (cart.length === 0)
       return Alert.alert("Cart is empty", "Add merch before checking out.");
     const order = {
@@ -317,6 +333,7 @@ export default function DashboardScreen({ fixedRole, fixedName } = {}) {
       }),
     };
     orders.unshift(order);
+    await recordActivity("Order Activity", name, `Placed order ${order.id} for ${money(order.total)}.`);
     store.cart = [];
     setCart([]);
     bump();
@@ -388,7 +405,10 @@ export default function DashboardScreen({ fixedRole, fixedName } = {}) {
     setCart(nextCart);
     setCartCount(store.cartNotificationCount);
   };
-  const signOut = () => router.replace("/");
+  const signOut = () => {
+    clearAuthenticatedAccount();
+    router.replace("/");
+  };
 
   const studentCategories = [
     "All",
@@ -680,8 +700,10 @@ export default function DashboardScreen({ fixedRole, fixedName } = {}) {
                   accessibilityLabel={`Buy ${p.name} now`}
                   onPress={(event) => {
                     event.stopPropagation?.();
-                    addCustomerProductToCart(p);
-                    router.push({ pathname: "/student/cart", params: { name } });
+                    const isAccessory = /accessor/i.test(p.category || "");
+                    const hasSizes = p.hasSizes ?? (!isAccessory && !/lanyard/i.test(p.name));
+                    const size = hasSizes ? (p.sizes || ["S", "M", "L", "XL"])[0] : "";
+                    router.push({ pathname: "/student/checkout", params: { name, productId: String(p.id), size } });
                   }}
                 >
                   <Text style={styles.studentBuyNowText}>Buy now</Text>
@@ -1111,31 +1133,8 @@ export default function DashboardScreen({ fixedRole, fixedName } = {}) {
                 <Text style={styles.orderItem}>Total</Text>
                 <Text style={styles.reportValue}>{money(cartTotal)}</Text>
               </View>
-              <Heading
-                title="Payment method"
-                detail="Choose how you will pay"
-              />
-              <View style={styles.quickActions}>
-                {["GCash", "Cash at pickup"].map((m) => (
-                  <TouchableOpacity
-                    key={m}
-                    onPress={() => setPayment(m === "GCash" ? "GCash" : "Cash")}
-                    style={[
-                      styles.paymentChoice,
-                      (m === "GCash"
-                        ? payment === "GCash"
-                        : payment === "Cash") && styles.paymentSelected,
-                    ]}
-                  >
-                    <Text style={styles.paymentText}>{m}</Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
-              <Action title="Place order" onPress={placeOrder} />
-              <Text style={styles.disclaimer}>
-                GCash checkout displays a sample receipt. No payment is
-                processed.
-              </Text>
+              <Text style={styles.muted}>Choose pickup details and payment on the next screens.</Text>
+              <Action title="Continue to checkout" onPress={() => router.push({ pathname: "/student/checkout", params: { name } })} />
             </Panel>
           </>
         )}
@@ -1148,36 +1147,51 @@ export default function DashboardScreen({ fixedRole, fixedName } = {}) {
             {renderOrders()}
           </>
         )}
-        {tab === "People" && (
+        {tab === "People" && role === "admin" && (
           <>
-            <Heading
-              title="Registered people"
-              detail={`${store.users.length} demo accounts`}
-            />
-            {store.users.map((u) => (
+            <Heading title="Registered users" detail={`${registeredAccounts.length} accounts`} />
+            {registeredAccounts.map((u) => (
               <Panel key={u.email} style={styles.rowPanel}>
-                <View style={styles.avatar}>
-                  <Text style={styles.avatarText}>
-                    {u.name
-                      .split(" ")
-                      .map((part) => part[0])
-                      .join("")
-                      .slice(0, 2)}
-                  </Text>
-                </View>
+                <View style={styles.avatar}><Text style={styles.avatarText}>{u.name.split(" ").map((part) => part[0]).join("").slice(0, 2)}</Text></View>
                 <View style={{ flex: 1 }}>
                   <Text style={styles.orderItem}>{u.name}</Text>
-                  <Text style={styles.muted}>
-                    {u.email} | joined {u.joined}
-                  </Text>
+                  <Text style={styles.muted}>{u.email} | {u.role} | ID {u.id || "—"} | joined {u.joined}</Text>
+                  <Text style={styles.muted}>{u.disabled ? "Disabled" : "Active"}</Text>
+                  <View style={{ flexDirection: "row", gap: 8, marginTop: 9 }}>
+                    <TouchableOpacity style={styles.pictureButton} onPress={() => Alert.alert(u.disabled ? "Enable account?" : "Disable account?", `Confirm account status change for ${u.name}.`, [
+                      { text: "Cancel", style: "cancel" },
+                      { text: u.disabled ? "Enable" : "Disable", onPress: async () => {
+                        try { await manageRegisteredAccount(u.email, u.disabled ? "enable" : "disable"); await refreshAdminData(); }
+                        catch { Alert.alert("Could not update account", "Please try again."); }
+                      } },
+                    ])}><Text style={styles.pictureButtonText}>{u.disabled ? "Enable" : "Disable"}</Text></TouchableOpacity>
+                    <TouchableOpacity style={[styles.pictureButton, { borderColor: "#C62828" }]} onPress={() => Alert.alert("Delete account permanently?", `${u.name} (${u.email}) will no longer be able to sign in.`, [
+                      { text: "Cancel", style: "cancel" },
+                      { text: "Delete", style: "destructive", onPress: async () => {
+                        try { await manageRegisteredAccount(u.email, "delete"); await refreshAdminData(); }
+                        catch { Alert.alert("Could not delete account", "Please try again."); }
+                      } },
+                    ])}><Text style={[styles.pictureButtonText, { color: "#B42318" }]}>Delete</Text></TouchableOpacity>
+                  </View>
                 </View>
-                <Text style={styles.rolePill}>{u.role}</Text>
               </Panel>
             ))}
-            <Text style={styles.disclaimer}>
-              This demo list includes seeded users. New signups are stored only
-              during this session.
-            </Text>
+            {!registeredAccounts.length && <Text style={styles.muted}>No registered users found.</Text>}
+          </>
+        )}
+        {tab === "Activity Logs" && role === "admin" && (
+          <>
+            <Heading title="Activity Logs" detail={`${activityLogs.length} recorded activities`} />
+            {activityLogs.map((item) => (
+              <Panel key={item.id} style={styles.rowPanel}>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.orderItem}>{item.type}</Text>
+                  <Text style={styles.muted}>{item.user} — {item.description}</Text>
+                  <Text style={styles.muted}>{new Date(item.timestamp).toLocaleString()}</Text>
+                </View>
+              </Panel>
+            ))}
+            {!activityLogs.length && <Text style={styles.muted}>No activity recorded yet.</Text>}
           </>
         )}
         {tab === "Reports" && renderReports()}
@@ -1198,6 +1212,7 @@ export default function DashboardScreen({ fixedRole, fixedName } = {}) {
                 Products: "\u25A3",
                 Orders: "\u25A4",
                 People: "\u2637",
+                "Activity Logs": "\u25A4",
                 Reports: "\u25A5",
               }[label],
             }))

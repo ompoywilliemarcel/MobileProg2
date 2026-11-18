@@ -11,7 +11,7 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { demoAccounts, loadSavedAccounts, saveCreatedAccount, store } from "../data/demoStore";
+import { demoAccounts, isEmailDeleted, loadSavedAccounts, saveCreatedAccount, store } from "../data/demoStore";
 
 export default function SignupScreen() {
   const router = useRouter();
@@ -63,6 +63,10 @@ export default function SignupScreen() {
     }
 
     const normalizedEmail = email.trim().toLowerCase();
+    if (await isEmailDeleted(normalizedEmail)) {
+      setErrorMessage("This email belongs to a deleted account and cannot be reused.");
+      return;
+    }
     if (
       demoAccounts.some(
         (account) => account.email.toLowerCase() === normalizedEmail,
