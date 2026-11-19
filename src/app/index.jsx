@@ -14,6 +14,7 @@ import { products } from '../data/products';
 export default function HomeScreen() {
   const { width } = useWindowDimensions();
   const compact = width < 600;
+  const wideHero = width >= 760;
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -39,6 +40,14 @@ export default function HomeScreen() {
         </View>
 
         <View style={styles.heroCard}>
+          {wideHero && (
+            <Image
+              source={require('../../assets/products/center.jpg')}
+              style={styles.heroImage}
+              resizeMode="cover"
+              accessibilityLabel="USTP Display Center"
+            />
+          )}
           <View style={styles.badge}>
             <Text style={styles.badgeText}>Fresh arrivals</Text>
           </View>
@@ -179,6 +188,16 @@ const styles = StyleSheet.create({
     minHeight: 180,
     padding: 24,
     marginBottom: 22,
+    overflow: 'hidden',
+    position: 'relative',
+  },
+  heroImage: {
+    position: 'absolute',
+    left: 0,
+    top: -332,
+    width: '100%',
+    aspectRatio: 1.75,
+    opacity: 0.52,
   },
   badge: {
     alignSelf: 'flex-start',

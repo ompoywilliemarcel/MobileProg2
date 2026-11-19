@@ -60,6 +60,7 @@ function Heading({ title, detail }) {
 export default function DashboardScreen({ fixedRole, fixedName } = {}) {
   const { width } = useWindowDimensions();
   const compactShop = width < 600;
+  const wideHero = width >= 760;
   const params = useLocalSearchParams();
   const router = useRouter();
   const routeRole = Array.isArray(params.role) ? params.role[0] : params.role;
@@ -910,11 +911,19 @@ export default function DashboardScreen({ fixedRole, fixedName } = {}) {
         <View
           style={[styles.topBar, role === "customer" && styles.studentTopBar]}
         >
-          <View>
-            <Text style={[styles.brand, styles.studentBrand]}>USTP Wear</Text>
-            <Text style={[styles.eyebrow, styles.studentEyebrow]}>
-              {role === "customer" ? "OFFICIAL CAMPUS STORE" : labelFor[role]}
-            </Text>
+          <View style={styles.brandRow}>
+            <Image
+              source={require("../../../assets/products/logo.png")}
+              style={styles.headerLogo}
+              resizeMode="contain"
+              accessibilityLabel="USTP Wear logo"
+            />
+            <View>
+              <Text style={[styles.brand, styles.studentBrand]}>USTP Wear</Text>
+              <Text style={[styles.eyebrow, styles.studentEyebrow]}>
+                {role === "customer" ? "OFFICIAL CAMPUS STORE" : labelFor[role]}
+              </Text>
+            </View>
           </View>
           <View style={styles.headerActions}>
             {role === "customer" && (
@@ -951,7 +960,14 @@ export default function DashboardScreen({ fixedRole, fixedName } = {}) {
         <View
           style={[styles.welcome, role === "customer" && styles.studentWelcome]}
         >
-          {role === "customer" && <View style={styles.studentHeroGlow} />}
+          {role === "customer" && wideHero && (
+            <Image
+              source={require("../../../assets/products/center.jpg")}
+              style={styles.studentHeroImage}
+              resizeMode="cover"
+              accessibilityLabel="USTP Display Center"
+            />
+          )}
           <Text style={styles.welcomeSmall}>
             {role === "customer"
               ? `HELLO, ${String(name).split(" ")[0].toUpperCase()}`
@@ -1041,7 +1057,6 @@ export default function DashboardScreen({ fixedRole, fixedName } = {}) {
                   {visibleProducts.length} pieces to represent your school
                 </Text>
               </View>
-              <Text style={styles.collectionMark}>USTP</Text>
             </View>
             <View style={[styles.searchBox, styles.studentSearchBox]}>
               <View style={styles.searchIcon}>
@@ -1359,6 +1374,8 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   studentTopBar: { marginBottom: 16 },
+  brandRow: { flexDirection: "row", alignItems: "center", gap: 9 },
+  headerLogo: { width: 42, height: 42 },
   studentBrand: { color: "#173B5B", fontSize: 25, letterSpacing: -0.8 },
   studentEyebrow: { color: "#647386", fontSize: 9, letterSpacing: 1.15 },
   studentSectionTitle: { color: "#173B5B", fontSize: 20 },
@@ -1453,16 +1470,13 @@ const styles = StyleSheet.create({
     overflow: "hidden",
     position: "relative",
   },
-  studentHeroGlow: {
+  studentHeroImage: {
     position: "absolute",
-    width: 210,
-    height: 210,
-    borderRadius: 105,
-    right: -86,
-    top: -80,
-    backgroundColor: "rgba(217,180,91,0.13)",
-    borderWidth: 1,
-    borderColor: "rgba(217,180,91,0.2)",
+    left: 0,
+    top: -332,
+    width: "100%",
+    aspectRatio: 1.75,
+    opacity: 0.52,
   },
   studentWelcomeTitle: { fontSize: 32, lineHeight: 37, maxWidth: 300 },
   studentWelcomeBody: { maxWidth: 290, fontSize: 14, lineHeight: 21 },
@@ -1519,18 +1533,6 @@ const styles = StyleSheet.create({
     fontWeight: "900",
     letterSpacing: 1.35,
     marginBottom: 5,
-  },
-  collectionMark: {
-    color: "#D9B45B",
-    fontSize: 20,
-    fontWeight: "900",
-    letterSpacing: 1.5,
-    borderWidth: 1,
-    borderColor: "#38536B",
-    borderRadius: 12,
-    overflow: "hidden",
-    paddingHorizontal: 10,
-    paddingVertical: 8,
   },
   searchBox: {
     flexDirection: "row",
