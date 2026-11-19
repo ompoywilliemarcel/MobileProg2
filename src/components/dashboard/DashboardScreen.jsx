@@ -9,6 +9,7 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
+  useWindowDimensions,
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -57,6 +58,8 @@ function Heading({ title, detail }) {
 }
 
 export default function DashboardScreen({ fixedRole, fixedName } = {}) {
+  const { width } = useWindowDimensions();
+  const compactShop = width < 600;
   const params = useLocalSearchParams();
   const router = useRouter();
   const routeRole = Array.isArray(params.role) ? params.role[0] : params.role;
@@ -521,6 +524,7 @@ export default function DashboardScreen({ fixedRole, fixedName } = {}) {
               styles.productCard,
               editable && styles.editableProductCard,
               role === "customer" && styles.studentProductCard,
+              role === "customer" && compactShop && styles.studentProductCardCompact,
             ]}
             onPress={
               !editable
@@ -532,16 +536,23 @@ export default function DashboardScreen({ fixedRole, fixedName } = {}) {
                 : undefined
             }
           >
-            <View style={role === "customer" ? styles.studentProductRow : undefined}>
+            <View style={[
+              role === "customer" && styles.studentProductRow,
+              role === "customer" && compactShop && styles.studentProductRowCompact,
+            ]}>
               <Image
                 source={imageSource(editable && editingProductId === p.id ? productDraft.image : p.image)}
-                resizeMode={role === "customer" ? "cover" : "contain"}
+                resizeMode="contain"
                 style={[
                   styles.productImage,
                   role === "customer" && styles.studentProductImage,
+                  role === "customer" && compactShop && styles.studentProductImageCompact,
                 ]}
               />
-              <View style={role === "customer" ? styles.studentProductInfo : undefined}>
+              <View style={[
+                role === "customer" && styles.studentProductInfo,
+                role === "customer" && compactShop && styles.studentProductInfoCompact,
+              ]}>
             {role === "customer" && (
               <View style={styles.studentMerchTag}><Text style={styles.studentMerchTagText}>MERCH DROP</Text></View>
             )}
@@ -1668,15 +1679,20 @@ const styles = StyleSheet.create({
     shadowRadius: 10,
     elevation: 4,
   },
+  studentProductCardCompact: { width: "100%", minHeight: 390 },
   studentProductImage: {
-    width: "100%",
-    height: 205,
+    width: "50%",
+    height: "100%",
+    minHeight: 390,
     borderRadius: 0,
     marginBottom: 0,
     backgroundColor: "#FFFFFF",
   },
-  studentProductRow: { flex: 1, flexDirection: "column" },
+  studentProductImageCompact: { width: "100%", height: 205, minHeight: 205 },
+  studentProductRow: { flex: 1, flexDirection: "row" },
+  studentProductRowCompact: { flexDirection: "column" },
   studentProductInfo: { flex: 1, minHeight: 0, position: "relative", paddingHorizontal: 18, paddingTop: 12, paddingBottom: 94, backgroundColor: "#FFFFFF" },
+  studentProductInfoCompact: { minHeight: 185 },
   studentMerchTag: { alignSelf: "flex-end", backgroundColor: "#F1F0EC", borderRadius: 999, paddingHorizontal: 10, paddingVertical: 6, marginBottom: 10 },
   studentMerchTagText: { color: "#0B1F33", fontSize: 9, fontWeight: "900", letterSpacing: 0.3 },
   studentProductDescription: { color: "#303640", fontSize: 12, fontStyle: "italic", lineHeight: 17, marginTop: 7 },
