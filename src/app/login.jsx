@@ -12,7 +12,7 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { demoAccounts, isAccountDisabled, loadSavedAccounts, recordActivity, setAuthenticatedAccount } from "../data/demoStore";
+import { demoAccounts, isAccountDisabled, loadSavedAccounts, recordActivity, setAuthenticatedAccount, store } from "../data/demoStore";
 
 export default function LoginScreen() {
   const router = useRouter();
@@ -31,7 +31,7 @@ export default function LoginScreen() {
     if (!validId) {
       setFieldErrors({
         idNumber: isStore
-          ? "Enter a valid Store ID (32 followed by 5 digits)."
+          ? "Enter a valid Admin ID (32 followed by 5 digits)."
           : "Enter a valid student number (202 followed by 7 digits).",
       });
       return;
@@ -55,7 +55,7 @@ export default function LoginScreen() {
       return;
     }
     if (account.id !== idNumber.trim()) {
-      setFieldErrors({ idNumber: isStore ? "Incorrect USTP Store ID." : "Incorrect student number." });
+      setFieldErrors({ idNumber: isStore ? "Incorrect Admin ID." : "Incorrect student number." });
       return;
     }
     if (account.password !== password) {
@@ -67,10 +67,11 @@ export default function LoginScreen() {
       return;
     }
     await setAuthenticatedAccount(account.email);
+    if (account.role === "customer") store.currentStudentId = account.id;
     await recordActivity("User Login", account.name, "Logged into the application.");
     router.replace({
       pathname: account.role === "customer" ? "/student/dashboard" : "/store-owner/dashboard",
-      params: { role: account.role, name: account.name },
+      params: { role: account.role, name: account.name, id: account.id },
     });
   };
   return (
@@ -85,14 +86,11 @@ export default function LoginScreen() {
         >
           <View style={styles.header}>
             <Text style={styles.brand}>USTP Wear</Text>
-            <Link href="/access" style={styles.link}>
-              Change account type
-            </Link>
           </View>
           <View style={styles.hero}>
             <Text style={styles.eyebrow}>WELCOME BACK</Text>
             <Text style={styles.title}>
-              {isStore ? "USTP Store login" : "Student login"}
+              {isStore ? "Admin login" : "Student login"}
             </Text>
             <Text style={styles.subtitle}>
               {isStore
@@ -102,7 +100,7 @@ export default function LoginScreen() {
           </View>
           <View style={styles.card}>
             <Text style={styles.label}>
-              {isStore ? "USTP Store ID" : "Student ID"}
+              {isStore ? "Admin ID" : "Student ID"}
             </Text>
             <TextInput
               style={styles.input}
@@ -158,6 +156,12 @@ export default function LoginScreen() {
               Create an account
             </Link>
           </Text>
+          <Link
+            href={{ pathname: "/login", params: { audience: isStore ? "student" : "store" } }}
+            style={[styles.link, styles.accountSwitch]}
+          >
+            {isStore ? "Login as Student" : "Log as Admin"}
+          </Link>
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
@@ -228,4 +232,5 @@ const styles = StyleSheet.create({
   },
   buttonText: { color: "#0B1F33", fontWeight: "800", fontSize: 15 },
   signup: { color: "#647386", textAlign: "center", marginTop: 22 },
+  accountSwitch: { alignSelf: "center", marginTop: 16, paddingVertical: 8 },
 });

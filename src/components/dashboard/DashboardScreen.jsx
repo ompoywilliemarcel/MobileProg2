@@ -1,5 +1,5 @@
 import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   Alert,
   Image,
@@ -14,6 +14,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import * as ImagePicker from "expo-image-picker";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { clearAuthenticatedAccount, getActivityLogs, getRegisteredAccounts, manageRegisteredAccount, money, productAmount, recordActivity, store } from "../../data/demoStore";
 
 const tabsFor = {
@@ -57,7 +58,7 @@ function Heading({ title, detail }) {
   );
 }
 
-export default function DashboardScreen({ fixedRole, fixedName } = {}) {
+export default function DashboardScreen({ fixedRole, fixedName, fixedStudentId } = {}) {
   const { width } = useWindowDimensions();
   const compactShop = width < 600;
   const wideHero = width >= 760;
@@ -65,22 +66,32 @@ export default function DashboardScreen({ fixedRole, fixedName } = {}) {
   const router = useRouter();
   const routeRole = Array.isArray(params.role) ? params.role[0] : params.role;
   const routeName = Array.isArray(params.name) ? params.name[0] : params.name;
+  const routeStudentId = Array.isArray(params.id) ? params.id[0] : params.id;
   const role = fixedRole || (["customer", "user", "admin"].includes(routeRole)
     ? routeRole
     : "customer");
-  const name =
+  const initialName =
     fixedName || routeName ||
     (role === "admin"
       ? "USTP Admin"
       : role === "user"
         ? "Store Manager"
         : "Student");
+  const studentId = fixedStudentId || routeStudentId || store.currentStudentId || "";
+  const [name, setName] = useState(initialName);
+  const [profileVisible, setProfileVisible] = useState(false);
+  const [profileNameDraft, setProfileNameDraft] = useState(initialName);
+  const [profileAddress, setProfileAddress] = useState("");
+  const [profileEmail, setProfileEmail] = useState("");
+  const [profileImage, setProfileImage] = useState(null);
+  const profileStorageKey = `ustp-wear.student-profile.${studentId || initialName}`;
   const [tab, setTab] = useState(tabsFor[role][0]);
   const [shopQuery, setShopQuery] = useState("");
+  const [adminProductQuery, setAdminProductQuery] = useState("");
+  const [addProductVisible, setAddProductVisible] = useState(false);
   const [shopCategory, setShopCategory] = useState("All");
   const [refresh, setRefresh] = useState(0);
   const [cart, setCart] = useState(store.cart);
-  const [cartCount, setCartCount] = useState(store.cartNotificationCount || 0);
   const [registeredAccounts, setRegisteredAccounts] = useState([]);
   const [activityLogs, setActivityLogs] = useState([]);
   const refreshAdminData = useCallback(async () => {
@@ -95,7 +106,7 @@ export default function DashboardScreen({ fixedRole, fixedName } = {}) {
   }, [role]);
   useFocusEffect(
     useCallback(() => {
-      setCartCount(store.cartNotificationCount || 0);
+      setRefresh((value) => value + 1);
       refreshAdminData();
     }, [refreshAdminData]),
   );
@@ -115,6 +126,20 @@ export default function DashboardScreen({ fixedRole, fixedName } = {}) {
   const [calendarDate, setCalendarDate] = useState(() => new Date());
   const [calendarVisible, setCalendarVisible] = useState(false);
   const [newImage, setNewImage] = useState(null);
+  useEffect(() => {
+    if (role !== "customer") return;
+    AsyncStorage.getItem(profileStorageKey).then((savedProfile) => {
+      if (!savedProfile) return;
+      const profile = JSON.parse(savedProfile);
+      if (profile.name) {
+        setName(profile.name);
+        setProfileNameDraft(profile.name);
+      }
+      setProfileAddress(profile.address || "");
+      setProfileEmail(profile.email || "");
+      setProfileImage(profile.image || null);
+    }).catch(() => {});
+  }, [profileStorageKey, role]);
   const products = store.products;
   const orders = store.orders;
   const totalSales = orders.reduce((sum, order) => sum + order.total, 0);
@@ -216,6 +241,7 @@ export default function DashboardScreen({ fixedRole, fixedName } = {}) {
             products.push(product);
             recordActivity("Product Change", name, `Added product ${product.name}.`).then(refreshAdminData).catch(() => {});
             resetNewProduct();
+            setAddProductVisible(false);
             bump();
             Alert.alert(
               "Product added",
@@ -393,7 +419,6 @@ export default function DashboardScreen({ fixedRole, fixedName } = {}) {
   };
   const openCart = () => {
     store.cartNotificationCount = 0;
-    setCartCount(0);
     router.push({ pathname: "/student/cart", params: { name } });
   };
   const addCustomerProductToCart = (product) => {
@@ -407,11 +432,64 @@ export default function DashboardScreen({ fixedRole, fixedName } = {}) {
     store.cart = nextCart;
     store.cartNotificationCount = (store.cartNotificationCount || 0) + 1;
     setCart(nextCart);
-    setCartCount(store.cartNotificationCount);
   };
   const signOut = () => {
-    clearAuthenticatedAccount();
-    router.replace("/");
+    Alert.alert("Log out?", "Are you sure you want to log out?", [
+      { text: "Cancel", style: "cancel" },
+      {
+        text: "Log out",
+        style: "destructive",
+        onPress: () => {
+          clearAuthenticatedAccount();
+          store.currentStudentId = null;
+          router.replace("/");
+        },
+      },
+    ]);
+  };
+  const toggleStoreStatus = () => {
+    store.isOnline = !store.isOnline;
+    setRefresh((value) => value + 1);
+  };
+  const openProfile = () => {
+    setProfileNameDraft(name);
+    setProfileVisible(true);
+  };
+  const chooseProfileImage = async () => {
+    try {
+      const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (!permission.granted) {
+        Alert.alert("Photo access needed", "Allow access to your photo library to choose a profile picture.");
+        return;
+      }
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ["images"],
+        allowsEditing: true,
+        aspect: [1, 1],
+        quality: 0.85,
+      });
+      if (!result.canceled) setProfileImage(result.assets[0].uri);
+    } catch {
+      Alert.alert("Could not open photos", "Please try choosing your profile picture again.");
+    }
+  };
+  const saveProfile = async () => {
+    const updatedProfile = {
+      name: profileNameDraft.trim() || name,
+      address: profileAddress.trim(),
+      email: profileEmail.trim(),
+      image: profileImage,
+    };
+    try {
+      await AsyncStorage.setItem(profileStorageKey, JSON.stringify(updatedProfile));
+      setName(updatedProfile.name);
+      setProfileNameDraft(updatedProfile.name);
+      setProfileAddress(updatedProfile.address);
+      setProfileEmail(updatedProfile.email);
+      setProfileVisible(false);
+    } catch {
+      Alert.alert("Could not save profile", "Please try again.");
+    }
   };
 
   const studentCategories = [
@@ -430,11 +508,40 @@ export default function DashboardScreen({ fixedRole, fixedName } = {}) {
   const renderProducts = (editable) => (
     <>
       {editable && (
-        <Panel>
-          <Heading
-            title="Add a product"
-            detail="Add the information customers will see"
+        <View style={styles.adminSearchRow}>
+          <TextInput
+            style={[styles.input, styles.adminProductSearch]}
+            value={adminProductQuery}
+            onChangeText={setAdminProductQuery}
+            placeholder="Search products by name"
+            placeholderTextColor="#8290A0"
+            accessibilityLabel="Search admin products by name"
           />
+          <TouchableOpacity
+            style={styles.addProductShortcut}
+            onPress={() => setAddProductVisible(true)}
+            accessibilityRole="button"
+            accessibilityLabel="Open add product section"
+          >
+            <Text style={styles.addProductShortcutText}>+</Text>
+          </TouchableOpacity>
+        </View>
+      )}
+      {editable && addProductVisible && (
+        <Panel>
+          <View style={styles.addProductHeading}>
+            <View style={{ flex: 1 }}>
+              <Heading title="Add a product" detail="Add the information customers will see" />
+            </View>
+            <TouchableOpacity
+              onPress={() => setAddProductVisible(false)}
+              style={styles.closeAddProduct}
+              accessibilityRole="button"
+              accessibilityLabel="Close add product section"
+            >
+              <Text style={styles.closeAddProductText}>{String.fromCharCode(215)}</Text>
+            </TouchableOpacity>
+          </View>
           <Text style={styles.fieldLabel}>Product picture</Text>
           <Image
             source={imageSource(newImage || require("../../../assets/products/lanyard.jpg"))}
@@ -518,7 +625,10 @@ export default function DashboardScreen({ fixedRole, fixedName } = {}) {
           role === "customer" && styles.studentProductGrid,
         ]}
       >
-        {visibleProducts.map((p) => (
+        {(!editable || !addProductVisible) && (editable
+          ? products.filter((product) => product.name.toLowerCase().includes(adminProductQuery.trim().toLowerCase()))
+          : visibleProducts
+        ).map((p) => (
           <Panel
             key={p.id}
             style={[
@@ -928,23 +1038,14 @@ export default function DashboardScreen({ fixedRole, fixedName } = {}) {
           <View style={styles.headerActions}>
             {role === "customer" && (
               <TouchableOpacity
-                onPress={openCart}
-                style={[
-                  styles.cartButton,
-                  role === "customer" && styles.studentCartButton,
-                ]}
+                onPress={openProfile}
+                style={styles.profileButton}
                 accessibilityRole="button"
-                accessibilityLabel={`Open cart, ${cartCount} new items`}
+                accessibilityLabel="Edit student profile"
               >
-                <View style={styles.cartIcon}>
-                  <View style={styles.bagHandle} />
-                  <View style={styles.bagBody} />
-                </View>
-                {cartCount > 0 && (
-                  <View style={styles.cartBadge}>
-                    <Text style={styles.cartBadgeText}>{cartCount}</Text>
-                  </View>
-                )}
+                {profileImage
+                  ? <Image source={{ uri: profileImage }} style={styles.profileButtonImage} />
+                  : <Text style={styles.profileButtonText}>{String(name).trim().charAt(0).toUpperCase() || "S"}</Text>}
               </TouchableOpacity>
             )}
             <TouchableOpacity
@@ -1004,6 +1105,33 @@ export default function DashboardScreen({ fixedRole, fixedName } = {}) {
             >
               <Text style={styles.studentHeroButtonText}>
                 Explore the collection
+              </Text>
+            </TouchableOpacity>
+          )}
+        </View>
+        <View style={styles.storeStatusBanner}>
+          <View style={[styles.storeStatusDot, store.isOnline ? styles.storeStatusDotOnline : styles.storeStatusDotOffline]} />
+          <View style={styles.storeStatusCopy}>
+            <Text style={styles.storeStatusTitle}>
+              Store {store.isOnline ? "Online" : "Offline"}
+            </Text>
+            <Text style={styles.storeStatusDescription}>
+              {role === "customer"
+                ? store.isOnline
+                  ? "The store is open for orders."
+                  : "The store is currently unavailable for orders."
+                : "This status is visible to students."}
+            </Text>
+          </View>
+          {role !== "customer" && (
+            <TouchableOpacity
+              onPress={toggleStoreStatus}
+              style={[styles.storeStatusAction, !store.isOnline && styles.storeStatusActionOffline]}
+              accessibilityRole="button"
+              accessibilityLabel={`Set store ${store.isOnline ? "offline" : "online"}`}
+            >
+              <Text style={styles.storeStatusActionText}>
+                Go {store.isOnline ? "offline" : "online"}
               </Text>
             </TouchableOpacity>
           )}
@@ -1281,6 +1409,52 @@ export default function DashboardScreen({ fixedRole, fixedName } = {}) {
           );
         })}
       </View>
+      {role === "customer" && (
+        <Modal
+          transparent
+          visible={profileVisible}
+          animationType="slide"
+          onRequestClose={() => setProfileVisible(false)}
+        >
+          <View style={styles.profileModalBackdrop}>
+            <ScrollView contentContainerStyle={styles.profileModalScroll} keyboardShouldPersistTaps="handled">
+              <View style={styles.profileModalCard}>
+                <View style={styles.profileModalHeader}>
+                  <View>
+                    <Text style={styles.profileModalTitle}>Your profile</Text>
+                    <Text style={styles.profileModalSubtitle}>Update your student contact details.</Text>
+                  </View>
+                  <TouchableOpacity onPress={() => setProfileVisible(false)} accessibilityRole="button" accessibilityLabel="Close profile">
+                    <Text style={styles.profileModalClose}>{String.fromCharCode(215)}</Text>
+                  </TouchableOpacity>
+                </View>
+                <View style={styles.profilePhotoWrap}>
+                  {profileImage
+                    ? <Image source={{ uri: profileImage }} style={styles.profilePhoto} />
+                    : <Text style={styles.profilePhotoInitial}>{String(profileNameDraft).trim().charAt(0).toUpperCase() || "S"}</Text>}
+                </View>
+                <TouchableOpacity style={styles.profilePhotoButton} onPress={chooseProfileImage} accessibilityRole="button">
+                  <Text style={styles.profilePhotoButtonText}>{profileImage ? "Change picture" : "Add picture"}</Text>
+                </TouchableOpacity>
+                <Text style={styles.fieldLabel}>Name</Text>
+                <TextInput style={styles.input} value={profileNameDraft} onChangeText={setProfileNameDraft} placeholder="Your name" placeholderTextColor="#8995A2" />
+                <Text style={styles.fieldLabel}>Student ID</Text>
+                <View style={styles.readOnlyProfileField}>
+                  <Text style={styles.readOnlyProfileText}>{studentId || "Not available"}</Text>
+                  <Text style={styles.readOnlyHint}>Cannot be changed</Text>
+                </View>
+                <Text style={styles.fieldLabel}>Address</Text>
+                <TextInput style={styles.input} value={profileAddress} onChangeText={setProfileAddress} placeholder="Enter your address" placeholderTextColor="#8995A2" />
+                <Text style={styles.fieldLabel}>Email address</Text>
+                <TextInput style={styles.input} value={profileEmail} onChangeText={setProfileEmail} placeholder="Enter your email address" placeholderTextColor="#8995A2" keyboardType="email-address" autoCapitalize="none" />
+                <TouchableOpacity style={styles.profileSaveButton} onPress={saveProfile} accessibilityRole="button">
+                  <Text style={styles.profileSaveButtonText}>Save profile</Text>
+                </TouchableOpacity>
+              </View>
+            </ScrollView>
+          </View>
+        </Modal>
+      )}
     </SafeAreaView>
   );
 }
@@ -1299,6 +1473,23 @@ const styles = StyleSheet.create({
   reportDateChange: { color: "#173B5B", fontSize: 12, fontWeight: "800" },
   emptyReport: { alignItems: "center", paddingVertical: 22 },
   modalBackdrop: { flex: 1, justifyContent: "center", padding: 22, backgroundColor: "rgba(10,24,38,0.48)" },
+  profileModalBackdrop: { flex: 1, justifyContent: "center", backgroundColor: "rgba(10,24,38,0.56)", padding: 16 },
+  profileModalScroll: { flexGrow: 1, justifyContent: "center", paddingVertical: 12 },
+  profileModalCard: { width: "100%", maxWidth: 520, alignSelf: "center", backgroundColor: "#FFFFFF", borderRadius: 22, padding: 20, borderWidth: 1, borderColor: "#E7E2D6" },
+  profileModalHeader: { flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 14 },
+  profileModalTitle: { color: "#173B5B", fontSize: 22, fontWeight: "900" },
+  profileModalSubtitle: { color: "#69798A", fontSize: 12, marginTop: 4 },
+  profileModalClose: { color: "#173B5B", fontSize: 27, lineHeight: 30, fontWeight: "600", paddingHorizontal: 5 },
+  profilePhotoWrap: { width: 86, height: 86, borderRadius: 43, alignSelf: "center", alignItems: "center", justifyContent: "center", backgroundColor: "#F8F3E5", overflow: "hidden", marginTop: 4 },
+  profilePhoto: { width: 86, height: 86, borderRadius: 43 },
+  profilePhotoInitial: { color: "#80651F", fontSize: 32, fontWeight: "900" },
+  profilePhotoButton: { alignSelf: "center", paddingVertical: 10, paddingHorizontal: 14, marginBottom: 8 },
+  profilePhotoButtonText: { color: "#80651F", fontSize: 12, fontWeight: "800" },
+  readOnlyProfileField: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", borderWidth: 1, borderColor: "#E1E4E7", borderRadius: 10, paddingHorizontal: 12, paddingVertical: 13, marginBottom: 8, backgroundColor: "#F1F3F4" },
+  readOnlyProfileText: { color: "#33465A", fontSize: 14, fontWeight: "700" },
+  readOnlyHint: { color: "#8290A0", fontSize: 10 },
+  profileSaveButton: { alignItems: "center", backgroundColor: "#D9B45B", borderRadius: 12, paddingVertical: 14, marginTop: 8 },
+  profileSaveButtonText: { color: "#0B1F33", fontSize: 14, fontWeight: "900" },
   calendarCard: { padding: 18, borderRadius: 22, backgroundColor: "#FFFFFF", borderWidth: 1, borderColor: "#E7E2D6" },
   calendarHeader: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 14 },
   calendarTitle: { color: "#173B5B", fontSize: 20, fontWeight: "800", marginTop: 4 },
@@ -1380,6 +1571,9 @@ const styles = StyleSheet.create({
   studentEyebrow: { color: "#647386", fontSize: 9, letterSpacing: 1.15 },
   studentSectionTitle: { color: "#173B5B", fontSize: 20 },
   headerActions: { flexDirection: "row", alignItems: "center", gap: 9 },
+  profileButton: { width: 40, height: 40, borderRadius: 20, backgroundColor: "#F8F3E5", borderWidth: 1, borderColor: "#D9B45B", alignItems: "center", justifyContent: "center", overflow: "hidden" },
+  profileButtonImage: { width: 40, height: 40, borderRadius: 20 },
+  profileButtonText: { color: "#80651F", fontWeight: "900", fontSize: 17 },
   cartButton: {
     width: 40,
     height: 40,
@@ -1582,7 +1776,14 @@ const styles = StyleSheet.create({
     backgroundColor: "#D9B45B",
     transform: [{ rotate: "45deg" }],
   },
-  searchInput: { flex: 1, minHeight: 46, color: "#FFFFFF", fontSize: 13 },
+  searchInput: { flex: 1, minHeight: 46, color: "#0B1F33", fontSize: 13 },
+  adminProductSearch: { flex: 1, marginBottom: 0 },
+  adminSearchRow: { flexDirection: "row", alignItems: "center", gap: 10, marginBottom: 12 },
+  addProductShortcut: { width: 46, height: 46, borderRadius: 13, backgroundColor: "#D9B45B", alignItems: "center", justifyContent: "center" },
+  addProductShortcutText: { color: "#0B1F33", fontSize: 28, lineHeight: 30, fontWeight: "600" },
+  addProductHeading: { flexDirection: "row", alignItems: "flex-start" },
+  closeAddProduct: { width: 34, height: 34, borderRadius: 17, backgroundColor: "#F2F5F7", alignItems: "center", justifyContent: "center", marginTop: -3 },
+  closeAddProductText: { color: "#173B5B", fontSize: 23, lineHeight: 25, fontWeight: "700" },
   categoryList: { gap: 8, paddingBottom: 15 },
   categoryChip: {
     borderRadius: 99,
@@ -1603,6 +1804,16 @@ const styles = StyleSheet.create({
     borderColor: "#E7E2D6",
     marginBottom: 12,
   },
+  storeStatusBanner: { flexDirection: "row", alignItems: "center", gap: 11, backgroundColor: "#FFFFFF", borderRadius: 14, borderWidth: 1, borderColor: "#E1E4E7", padding: 13, marginBottom: 15 },
+  storeStatusDot: { width: 11, height: 11, borderRadius: 6 },
+  storeStatusDotOnline: { backgroundColor: "#16834A" },
+  storeStatusDotOffline: { backgroundColor: "#C62828" },
+  storeStatusCopy: { flex: 1 },
+  storeStatusTitle: { color: "#0B1F33", fontWeight: "800", fontSize: 13 },
+  storeStatusDescription: { color: "#69798A", fontSize: 11, marginTop: 3 },
+  storeStatusAction: { backgroundColor: "#FCE8E6", borderRadius: 10, paddingHorizontal: 11, paddingVertical: 9 },
+  storeStatusActionOffline: { backgroundColor: "#E7F5EC" },
+  storeStatusActionText: { color: "#173B5B", fontSize: 11, fontWeight: "800" },
   sectionHeading: { marginBottom: 12 },
   sectionTitle: { color: "#0B1F33", fontSize: 18, fontWeight: "800" },
   muted: { color: "#69798A", fontSize: 12, lineHeight: 18, marginTop: 3 },

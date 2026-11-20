@@ -6,7 +6,7 @@ import DarkRadialBackground from '../../components/DarkRadialBackground';
 import { money, productAmount, store } from '../../data/demoStore';
 import { products as catalogProducts } from '../../data/products';
 
-const times = ['9 AM','10 AM','11 AM','12 PM','1 PM','2 PM','3 PM','4 PM','5 PM'];
+const times = ['9 AM','10 AM','11 AM','12 PM','1 PM','2 PM','3 PM','4 PM'];
 
 export default function CheckoutScreen() {
   const router = useRouter();
@@ -17,12 +17,13 @@ export default function CheckoutScreen() {
   const directProduct = productId ? [...store.products, ...catalogProducts].find((item) => item.id === Number(productId)) : null;
   const items = directProduct ? [{ ...directProduct, size: size || null, quantity: 1 }] : store.cart;
   const [pickupDate, setPickupDate] = useState('');
-  const [pickupTime, setPickupTime] = useState('10 AM');
+  const [pickupTime, setPickupTime] = useState(store.checkoutPickupTime || '10 AM');
   const total = useMemo(() => items.reduce((sum, item) => sum + productAmount(item) * (item.quantity || 1), 0), [items]);
   const continueToPayment = () => {
     if (!items.length) return router.replace({ pathname: '/student/cart', params: { name } });
     store.checkoutItems = items.map((item) => ({ ...item }));
-    store.checkoutPickup = pickupDate.trim() ? `${pickupDate.trim()} at ${pickupTime}` : '';
+    store.checkoutPickupTime = pickupTime;
+    store.checkoutPickup = pickupDate.trim() ? `${pickupDate.trim()} at ${pickupTime}` : `at ${pickupTime}`;
     store.checkoutDirect = Boolean(directProduct);
     router.push({ pathname: '/student/payment', params: { name } });
   };

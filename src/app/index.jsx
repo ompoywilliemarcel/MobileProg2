@@ -32,7 +32,7 @@ export default function HomeScreen() {
             </View>
           </View>
            
-          <Link href="/access" asChild>
+          <Link href="/login" asChild>
             <TouchableOpacity style={styles.headerButton}>
               <Text style={styles.headerButtonText}>Login</Text>
             </TouchableOpacity>
@@ -113,12 +113,12 @@ export default function HomeScreen() {
               </TouchableOpacity>
               </Link>
               <View style={styles.productActions}>
-                <Link href={{ pathname: '/access', params: { mode: 'signup' } }} asChild>
+                <Link href="/login" asChild>
                   <TouchableOpacity style={styles.addCartButton} accessibilityRole="button" accessibilityLabel={`Add ${product.name} to cart`}>
                     <Text style={styles.addCartText}>Add to cart</Text>
                   </TouchableOpacity>
                 </Link>
-                <Link href={{ pathname: '/access', params: { mode: 'signup' } }} asChild>
+                <Link href="/login" asChild>
                   <TouchableOpacity style={styles.buyNowButton} accessibilityRole="button" accessibilityLabel={`Buy ${product.name} now`}>
                     <Text style={styles.buyNowText}>Buy now</Text>
                   </TouchableOpacity>

@@ -9,7 +9,7 @@ export default function PaymentScreen() {
   const router = useRouter();
   const params = useLocalSearchParams();
   const name = Array.isArray(params.name) ? params.name[0] : params.name || 'Student';
-  const [method, setMethod] = useState('GCash');
+  const [method, setMethod] = useState(store.checkoutMethod || 'GCash');
   const items = store.checkoutItems || [];
   const total = useMemo(() => items.reduce((sum,item)=>sum+productAmount(item)*(item.quantity||1),0),[items]);
   const placeOrder = async () => {
@@ -18,14 +18,14 @@ export default function PaymentScreen() {
     store.orders.unshift(order);
     await recordActivity('Order Activity', name, `Placed order ${order.id} for ${money(total)}.`);
     if (!store.checkoutDirect) { store.cart = []; store.cartNotificationCount = 0; }
-    store.checkoutItems = []; store.checkoutPickup = ''; store.checkoutDirect = false;
+    store.checkoutItems = []; store.checkoutPickup = ''; store.checkoutPickupTime = '10 AM'; store.checkoutDirect = false; store.checkoutMethod = 'GCash';
     router.replace({ pathname:'/student/order-confirmation', params:{ name, orderId:order.id, total:String(total), method } });
   };
   return <SafeAreaView style={styles.safe}><DarkRadialBackground/><ScrollView contentContainerStyle={styles.content}>
     <View style={styles.header}><TouchableOpacity onPress={()=>router.back()}><Text style={styles.back}>‹  Checkout</Text></TouchableOpacity><Text style={styles.title}>Payment</Text><View style={{width:60}}/></View>
     <Text style={styles.subtitle}>Choose how you’d like to pay.</Text>
     <View style={styles.card}><Text style={styles.sectionTitle}>Payment method</Text>
-      {[['GCash','Pay with GCash'],['Cash','Cash at pickup']].map(([value,label])=><TouchableOpacity key={value} onPress={()=>setMethod(value)} style={[styles.choice,method===value&&styles.choiceSelected]}><View style={[styles.radio,method===value&&styles.radioSelected]}><View style={method===value&&styles.radioDot}/></View><View style={{flex:1}}><Text style={styles.choiceTitle}>{label}</Text><Text style={styles.muted}>{value==='GCash'?'Demo receipt only; no payment is processed.':'Pay when you collect your order.'}</Text></View></TouchableOpacity>)}
+      {[['GCash','Pay with GCash'],['Pay on shop','Pay when you pick up']].map(([value,label])=><TouchableOpacity key={value} onPress={()=>{setMethod(value);store.checkoutMethod=value;}} style={[styles.choice,method===value&&styles.choiceSelected]}><View style={[styles.radio,method===value&&styles.radioSelected]}><View style={method===value&&styles.radioDot}/></View><View style={{flex:1}}><Text style={styles.choiceTitle}>{value}</Text><Text style={styles.muted}>{value==='GCash'?'Demo payment only; no payment is processed.':label}</Text></View></TouchableOpacity>)}
     </View>
     <View style={styles.card}><View style={styles.totalRow}><Text style={styles.totalLabel}>Order total</Text><Text style={styles.total}>{money(total)}</Text></View><Text style={styles.muted}>{store.checkoutPickup?`Pickup: ${store.checkoutPickup}`:'Pickup details can be arranged after placing your order.'}</Text></View>
     <TouchableOpacity style={styles.primary} onPress={placeOrder}><Text style={styles.primaryText}>Place order</Text></TouchableOpacity>

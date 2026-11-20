@@ -195,12 +195,16 @@ export const manageRegisteredAccount = async (email, action) => {
 };
 
 export const store = {
+  isOnline: true,
+  currentStudentId: null,
   products: [...starterProducts],
   cart: [],
   cartNotificationCount: 0,
   checkoutItems: [],
   checkoutPickup: '',
+  checkoutPickupTime: '10 AM',
   checkoutDirect: false,
+  checkoutMethod: 'GCash',
   users: [
     {
       name: "Alex Student",
