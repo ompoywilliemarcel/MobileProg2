@@ -720,6 +720,7 @@ export default function DashboardScreen({
         style={[
           styles.productGrid,
           role === "customer" && styles.studentProductGrid,
+          editable && styles.editableProductGrid,
         ]}
       >
         {(!editable || !addProductVisible) &&
@@ -736,6 +737,7 @@ export default function DashboardScreen({
               style={[
                 styles.productCard,
                 editable && styles.editableProductCard,
+                editable && compactShop && styles.editableProductCardCompact,
                 role === "customer" && styles.studentProductCard,
                 role === "customer" &&
                   compactShop &&
@@ -2631,6 +2633,7 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
   },
   studentProductGrid: { rowGap: 12 },
+  editableProductGrid: { rowGap: 12 },
   studentProductCard: {
     width: "48.5%",
     minHeight: 390,
@@ -2843,7 +2846,8 @@ const styles = StyleSheet.create({
   optionalToggleText: { color: "#59697A", fontSize: 11, fontWeight: "700" },
   optionalToggleTextActive: { color: "#356346" },
   descriptionInput: { minHeight: 96, paddingTop: 11 },
-  editableProductCard: { width: "100%", padding: 14 },
+  editableProductCard: { width: "48.5%", padding: 11 },
+  editableProductCardCompact: { width: "100%" },
   productSummary: {
     color: "#637284",
     fontSize: 12,

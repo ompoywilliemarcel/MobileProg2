@@ -1,5 +1,6 @@
 ﻿import { Link, useLocalSearchParams, useRouter } from "expo-router";
-import { useState } from "react";
+import { useCallback, useState } from "react";
+import { useFocusEffect } from "expo-router";
 import {
   Image,
   ScrollView,
@@ -12,6 +13,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import {
   getProductStock,
+  loadProductInventory,
   getStockStatus,
   getStockStatusLabel,
   store,
@@ -24,21 +26,16 @@ const stockColors = {
   out: "#FF3636",
 };
 
-function StockLegend() {
+function StockIndicator({ quantity }) {
+  const status = getStockStatus(quantity);
   return (
-    <View style={styles.stockLegend}>
-      {[
-        ["high", "High stock"],
-        ["low", "Low stock"],
-        ["out", "Out of stock"],
-      ].map(([status, label]) => (
-        <View key={status} style={styles.stockLegendItem}>
-          <View
-            style={[styles.stockDot, { backgroundColor: stockColors[status] }]}
-          />
-          <Text style={styles.stockLegendText}>{label}</Text>
-        </View>
-      ))}
+    <View style={styles.stockIndicator}>
+      <View
+        style={[styles.stockDot, { backgroundColor: stockColors[status] }]}
+      />
+      <Text style={styles.stockIndicatorText}>
+        {getStockStatusLabel(quantity)}
+      </Text>
     </View>
   );
 }
@@ -57,6 +54,20 @@ export default function ProductDetailsScreen() {
   const sizes = hasSizes ? product.sizes || ["S", "M", "L", "XL"] : [];
   const [selectedSize, setSelectedSize] = useState(sizes[0] || null);
   const [detailsOpen, setDetailsOpen] = useState(false);
+  const [, refreshInventory] = useState(0);
+  useFocusEffect(
+    useCallback(() => {
+      let active = true;
+      loadProductInventory()
+        .then(() => {
+          if (active) refreshInventory((version) => version + 1);
+        })
+        .catch(() => {});
+      return () => {
+        active = false;
+      };
+    }, []),
+  );
   const { width } = useWindowDimensions();
   const isWide = width >= 760;
   const wideImageHeight = Math.min(610, width * 0.36);
@@ -184,23 +195,17 @@ export default function ProductDetailsScreen() {
                           );
                         })}
                       </View>
-                      <Text style={styles.selectedStock}>
-                        {selectedSize
-                          ? `${selectedSize}: ${getStockStatusLabel(
-                              getProductStock(product, selectedSize),
-                            )} · ${getProductStock(product, selectedSize)} available`
-                          : "Choose a size to view availability."}
-                      </Text>
-                      <StockLegend />
+                      {selectedSize ? (
+                        <StockIndicator
+                          quantity={getProductStock(product, selectedSize)}
+                        />
+                      ) : null}
                     </View>
                   )}
                   {!hasSizes && (
                     <View style={styles.sizeSection}>
                       <Text style={styles.sectionLabel}>Availability</Text>
-                      <Text style={styles.selectedStock}>
-                        {getStockStatusLabel(getProductStock(product))} · {getProductStock(product)} available
-                      </Text>
-                      <StockLegend />
+                      <StockIndicator quantity={getProductStock(product)} />
                     </View>
                   )}
                   <Text style={styles.sku}>
@@ -451,10 +456,8 @@ const styles = StyleSheet.create({
   sizeText: { color: "#263246", fontSize: 13, fontWeight: "700" },
   sizeTextSelected: { color: "#18243A" },
   stockDot: { width: 9, height: 9, borderRadius: 5 },
-  selectedStock: { color: "#45566A", fontSize: 12, fontWeight: "700", marginTop: 12 },
-  stockLegend: { flexDirection: "row", flexWrap: "wrap", gap: 14, marginTop: 12 },
-  stockLegendItem: { alignItems: "center", flexDirection: "row", gap: 6 },
-  stockLegendText: { color: "#59616C", fontSize: 12, fontStyle: "italic" },
+  stockIndicator: { alignItems: "center", flexDirection: "row", gap: 7, marginTop: 12 },
+  stockIndicatorText: { color: "#59616C", fontSize: 12, fontStyle: "italic" },
   buttonDisabled: { opacity: 0.45 },
   sku: {
     color: "#777D86",

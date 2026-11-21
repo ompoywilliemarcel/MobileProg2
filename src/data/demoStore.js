@@ -46,7 +46,6 @@ export const loadSavedAccounts = async () => {
       const savedAccounts = await AsyncStorage.getItem(CREATED_ACCOUNTS_KEY);
       const savedAdminData = await AsyncStorage.getItem(ADMIN_DATA_KEY);
       const savedPasswordOverrides = await AsyncStorage.getItem(PASSWORD_OVERRIDES_KEY);
-      const savedInventory = await AsyncStorage.getItem(PRODUCT_INVENTORY_KEY);
       if (savedPasswordOverrides) {
         const parsedOverrides = JSON.parse(savedPasswordOverrides);
         if (parsedOverrides && typeof parsedOverrides === "object") {
@@ -82,19 +81,7 @@ export const loadSavedAccounts = async () => {
         const override = passwordOverrides[account.email.toLowerCase()];
         if (typeof override === "string") account.password = override;
       }
-      if (savedInventory) {
-        const parsedInventory = JSON.parse(savedInventory);
-        if (Array.isArray(parsedInventory)) {
-          for (const savedProduct of parsedInventory) {
-            const product = store.products.find(
-              (item) => String(item.id) === String(savedProduct?.id),
-            );
-            if (product && savedProduct.stock && typeof savedProduct.stock === "object") {
-              product.stock = savedProduct.stock;
-            }
-          }
-        }
-      }
+      await loadProductInventory();
       accountsHydrated = true;
     })().catch((error) => {
       hydrationPromise = undefined;
@@ -329,6 +316,21 @@ export const saveProductInventory = async () => {
       store.products.map((product) => ({ id: product.id, stock: product.stock })),
     ),
   );
+};
+
+export const loadProductInventory = async () => {
+  const savedInventory = await AsyncStorage.getItem(PRODUCT_INVENTORY_KEY);
+  if (!savedInventory) return;
+  const parsedInventory = JSON.parse(savedInventory);
+  if (!Array.isArray(parsedInventory)) return;
+  for (const savedProduct of parsedInventory) {
+    const product = store.products.find(
+      (item) => String(item.id) === String(savedProduct?.id),
+    );
+    if (product && savedProduct.stock && typeof savedProduct.stock === "object") {
+      product.stock = savedProduct.stock;
+    }
+  }
 };
 
 export const money = (amount) => `\u20B1${Number(amount).toLocaleString("en-PH")}`;
