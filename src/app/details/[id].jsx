@@ -10,7 +10,7 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { store } from '../../data/demoStore';
+import { getProductStock, store } from '../../data/demoStore';
 import { products as catalogProducts } from '../../data/products';
 
 export default function ProductDetailsScreen() {
@@ -85,15 +85,17 @@ export default function ProductDetailsScreen() {
                         {sizes.map((size) => (
                           <TouchableOpacity
                             key={size}
+                            disabled={getProductStock(product, size) <= 0}
                             onPress={() => setSelectedSize(size)}
-                            style={[styles.sizeChip, selectedSize === size && styles.sizeChipSelected]}
+                            style={[styles.sizeChip, getProductStock(product, size) > 0 && getProductStock(product, size) <= 10 && styles.sizeChipLow, getProductStock(product, size) <= 0 && styles.sizeChipOut, selectedSize === size && getProductStock(product, size) > 0 && styles.sizeChipSelected]}
                             accessibilityRole="button"
                             accessibilityState={{ selected: selectedSize === size }}
                           >
-                            <Text style={[styles.sizeText, selectedSize === size && styles.sizeTextSelected]}>{size}</Text>
+                            <Text style={[styles.sizeText, (getProductStock(product, size) <= 0 || (getProductStock(product, size) > 0 && getProductStock(product, size) <= 10)) && styles.sizeTextMuted, selectedSize === size && getProductStock(product, size) > 0 && styles.sizeTextSelected]}>{size}</Text>
                           </TouchableOpacity>
                         ))}
                       </View>
+                      <Text style={styles.stockHint}>Gray: low stock (10 or fewer) · Red: out of stock</Text>
                     </View>
                   )}
                   <Text style={styles.sku}>MERCH-{String(product.id).padStart(3, '0')}</Text>
@@ -103,9 +105,11 @@ export default function ProductDetailsScreen() {
               {isCustomer ? (
                 <View style={styles.customerActions}>
                   <TouchableOpacity
-                    style={styles.addToCartButton}
+                    style={[styles.addToCartButton, (hasSizes ? getProductStock(product, selectedSize) : getProductStock(product)) <= 0 && styles.buttonDisabled]}
                     onPress={() => {
                     if (hasSizes && !selectedSize) return;
+                    if ((hasSizes ? getProductStock(product, selectedSize) : getProductStock(product)) <= 0) return;
+                    if ((hasSizes ? getProductStock(product, selectedSize) : getProductStock(product)) < ((store.cart.find((item) => item.id === product.id && item.size === selectedSize)?.quantity || 0) + 1)) return;
                     const existing = store.cart.find((item) => item.id === product.id && item.size === selectedSize);
                     if (existing) existing.quantity = (existing.quantity || 1) + 1;
                     else store.cart.push({ ...product, size: selectedSize, quantity: 1 });
@@ -116,9 +120,10 @@ export default function ProductDetailsScreen() {
                     <Text style={styles.addToCartText}>Add to cart</Text>
                   </TouchableOpacity>
                   <TouchableOpacity
-                    style={styles.customerBuyNowButton}
+                    style={[styles.customerBuyNowButton, (hasSizes ? getProductStock(product, selectedSize) : getProductStock(product)) <= 0 && styles.buttonDisabled]}
                     onPress={() => {
                       if (hasSizes && !selectedSize) return;
+                      if ((hasSizes ? getProductStock(product, selectedSize) : getProductStock(product)) <= 0) return;
                       router.push({ pathname: '/student/checkout', params: { name: name || 'Student', productId: String(product.id), size: selectedSize || '' } });
                     }}
                   >
@@ -206,6 +211,11 @@ const styles = StyleSheet.create({
   sizeChipSelected: { backgroundColor: '#E5BD55', borderColor: '#E5BD55' },
   sizeText: { color: '#263246', fontSize: 13, fontWeight: '700' },
   sizeTextSelected: { color: '#18243A' },
+  sizeChipLow: { backgroundColor: '#E5E7EB', borderColor: '#B9BEC6' },
+  sizeChipOut: { backgroundColor: '#FCE3E3', borderColor: '#D94848' },
+  sizeTextMuted: { color: '#777D86' },
+  stockHint: { color: '#777D86', fontSize: 11, marginTop: 8 },
+  buttonDisabled: { opacity: 0.45 },
   sku: { color: '#777D86', fontSize: 11, fontWeight: '700', letterSpacing: 0.6, marginTop: 4 },
   guestActions: { gap: 12, marginTop: 28, maxWidth: 420 },
   customerActions: { marginTop: 0, maxWidth: 420 },

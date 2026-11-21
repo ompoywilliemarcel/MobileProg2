@@ -197,7 +197,13 @@ export const manageRegisteredAccount = async (email, action) => {
 export const store = {
   isOnline: true,
   currentStudentId: null,
-  products: [...starterProducts],
+  products: starterProducts.map((product) => ({
+    ...product,
+    hasSizes: product.hasSizes ?? (!/accessor/i.test(product.category || '') && !/lanyard/i.test(product.name)),
+    stock: product.stock || (/accessor/i.test(product.category || '') || /lanyard/i.test(product.name)
+      ? { quantity: 500 }
+      : { S: 100, M: 200, L: 100, XL: 100 }),
+  })),
   cart: [],
   cartNotificationCount: 0,
   checkoutItems: [],
@@ -251,3 +257,39 @@ export const store = {
 export const money = (amount) => `\u20B1${Number(amount).toLocaleString("en-PH")}`;
 export const productAmount = (product) =>
   Number(String(product.price).replace(/[^0-9.]/g, "")) || 0;
+
+export const getProductStock = (product, size) => {
+  const inventory = store.products.find((item) => item.id === product?.id) || product;
+  if (!inventory?.stock) return 0;
+  return inventory.stock.quantity ?? inventory.stock[size] ?? 0;
+};
+
+export const deductOrderStock = (items) => {
+  const totals = new Map();
+  for (const item of items) {
+    const product = store.products.find((entry) => entry.id === item.id);
+    const key = product?.stock?.quantity !== undefined ? 'quantity' : item.size;
+    const deductionKey = `${item.id}:${key}`;
+    const current = totals.get(deductionKey);
+    const quantity = item.quantity || 1;
+    if (current) {
+      current.quantity += quantity;
+      continue;
+    }
+    const available = product?.stock?.[key] ?? 0;
+    if (!product || !key || available < quantity) {
+      const sizeLabel = item.size ? ` size ${item.size}` : '';
+      throw new Error(`${item.name}${sizeLabel} has only ${available} in stock.`);
+    }
+    totals.set(deductionKey, { product, key, quantity, available, item });
+  }
+  for (const { item, quantity, available } of totals.values()) {
+    if (available < quantity) {
+      const sizeLabel = item.size ? ` size ${item.size}` : '';
+      throw new Error(`${item.name}${sizeLabel} has only ${available} in stock.`);
+    }
+  }
+  totals.forEach(({ product, key, quantity }) => {
+    product.stock[key] -= quantity;
+  });
+};
