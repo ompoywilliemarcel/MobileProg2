@@ -47,15 +47,7 @@ export default function CartScreen() {
       cart.map((entry, i) => (i === index ? { ...entry, quantity } : entry)),
     );
   };
-  const remove = (index) =>
-    Alert.alert("Remove item?", "This item will be removed from your cart.", [
-      { text: "Keep item", style: "cancel" },
-      {
-        text: "Remove",
-        style: "destructive",
-        onPress: () => save(cart.filter((_, i) => i !== index)),
-      },
-    ]);
+  const remove = (index) => save(cart.filter((_, i) => i !== index));
   const goBack = () =>
     router.replace({ pathname: "/student/dashboard", params: { name } });
 
@@ -101,7 +93,13 @@ export default function CartScreen() {
                       <Text style={styles.qtyText}>+</Text>
                     </TouchableOpacity>
                   </View>
-                  <TouchableOpacity onPress={() => remove(index)}>
+                  <TouchableOpacity
+                    onPress={() => remove(index)}
+                    accessibilityRole="button"
+                    accessibilityLabel={`Remove ${item.name} from cart`}
+                    hitSlop={8}
+                    style={styles.removeButton}
+                  >
                     <Text style={styles.remove}>Remove</Text>
                   </TouchableOpacity>
                 </View>
@@ -194,6 +192,7 @@ const styles = StyleSheet.create({
   },
   qtyText: { color: "#80651F", fontSize: 17, fontWeight: "800" },
   qtyValue: { color: "#0B1F33", fontWeight: "800" },
+  removeButton: { paddingVertical: 8, paddingHorizontal: 6 },
   remove: { color: "#A43D32", fontWeight: "800", fontSize: 11 },
   summary: {
     backgroundColor: "#FFF",
