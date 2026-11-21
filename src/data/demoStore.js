@@ -3,10 +3,12 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const CREATED_ACCOUNTS_KEY = "ustp-wear.created-accounts";
 const ADMIN_DATA_KEY = "ustp-wear.admin-data";
+const PASSWORD_OVERRIDES_KEY = "ustp-wear.password-overrides";
 let accountsHydrated = false;
 let hydrationPromise;
 let createdAccounts = [];
 let adminData = { disabledEmails: [], deletedEmails: [], activities: [] };
+let passwordOverrides = {};
 let authenticatedEmail = null;
 
 export const demoAccounts = [
@@ -42,6 +44,13 @@ export const loadSavedAccounts = async () => {
     hydrationPromise = (async () => {
       const savedAccounts = await AsyncStorage.getItem(CREATED_ACCOUNTS_KEY);
       const savedAdminData = await AsyncStorage.getItem(ADMIN_DATA_KEY);
+      const savedPasswordOverrides = await AsyncStorage.getItem(PASSWORD_OVERRIDES_KEY);
+      if (savedPasswordOverrides) {
+        const parsedOverrides = JSON.parse(savedPasswordOverrides);
+        if (parsedOverrides && typeof parsedOverrides === "object") {
+          passwordOverrides = parsedOverrides;
+        }
+      }
       if (savedAdminData) {
         const parsedData = JSON.parse(savedAdminData);
         adminData = {
@@ -66,6 +75,10 @@ export const loadSavedAccounts = async () => {
       const deletedEmails = new Set(adminData.deletedEmails.map((email) => email.toLowerCase()));
       for (let index = demoAccounts.length - 1; index >= 0; index -= 1) {
         if (deletedEmails.has(demoAccounts[index].email.toLowerCase())) demoAccounts.splice(index, 1);
+      }
+      for (const account of demoAccounts) {
+        const override = passwordOverrides[account.email.toLowerCase()];
+        if (typeof override === "string") account.password = override;
       }
       accountsHydrated = true;
     })().catch((error) => {
@@ -139,6 +152,43 @@ export const getRegisteredAccounts = async () => {
 export const isAccountDisabled = async (email) => {
   await loadSavedAccounts();
   return adminData.disabledEmails.includes(String(email).toLowerCase());
+};
+
+export const resetAccountPassword = async ({ email, id, password, audience }) => {
+  await loadSavedAccounts();
+  const normalizedEmail = String(email).trim().toLowerCase();
+  const account = demoAccounts.find(
+    (item) => item.email.toLowerCase() === normalizedEmail,
+  );
+  const audienceMatches =
+    account &&
+    (account.audience === audience ||
+      (audience === "store" && account.role === "admin"));
+  if (!account || !audienceMatches || account.id !== String(id).trim()) {
+    throw new Error("We couldn't find an account with those details.");
+  }
+  if (adminData.deletedEmails.includes(normalizedEmail)) {
+    throw new Error("This account is no longer available.");
+  }
+  if (typeof password !== "string" || password.length < 8) {
+    throw new Error("Your new password must be at least 8 characters.");
+  }
+
+  account.password = password;
+  passwordOverrides[normalizedEmail] = password;
+  if (account.role === "customer" && account.audience === "student") {
+    createdAccounts = createdAccounts.map((savedAccount) =>
+      savedAccount.email.toLowerCase() === normalizedEmail
+        ? { ...savedAccount, password }
+        : savedAccount,
+    );
+  }
+  appendActivity("Password Reset", account.name, "Reset the account password.");
+  await AsyncStorage.multiSet([
+    [CREATED_ACCOUNTS_KEY, JSON.stringify(createdAccounts)],
+    [PASSWORD_OVERRIDES_KEY, JSON.stringify(passwordOverrides)],
+    [ADMIN_DATA_KEY, JSON.stringify(adminData)],
+  ]);
 };
 
 export const setAuthenticatedAccount = async (email) => {

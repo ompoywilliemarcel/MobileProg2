@@ -175,6 +175,12 @@ export default function LoginScreen() {
             {fieldErrors.password ? (
               <Text style={styles.fieldError}>{fieldErrors.password}</Text>
             ) : null}
+            <Link
+              href={{ pathname: "/forgot-password", params: { audience } }}
+              style={styles.forgotPassword}
+            >
+              Forgot password?
+            </Link>
             <TouchableOpacity style={styles.button} onPress={handleLogin}>
               <Text style={styles.buttonText}>Continue</Text>
             </TouchableOpacity>
@@ -266,6 +272,14 @@ const styles = StyleSheet.create({
     marginTop: 4,
     marginBottom: 10,
     fontWeight: "600",
+  },
+  forgotPassword: {
+    color: "#173B5B",
+    fontSize: 13,
+    fontWeight: "700",
+    alignSelf: "flex-end",
+    marginTop: 12,
+    paddingVertical: 4,
   },
   button: {
     backgroundColor: "#D9B45B",
