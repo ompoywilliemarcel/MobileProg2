@@ -291,7 +291,10 @@ export default function ProductDetailsScreen() {
                 </View>
               ) : (
                 <View style={styles.guestActions}>
-                  <Link href="/access" asChild>
+                  <Link
+                    href={{ pathname: "/login", params: { audience: "student" } }}
+                    asChild
+                  >
                     <TouchableOpacity
                       style={styles.addToCartButton}
                       accessibilityRole="button"
@@ -299,7 +302,10 @@ export default function ProductDetailsScreen() {
                       <Text style={styles.addToCartText}>ADD TO CART</Text>
                     </TouchableOpacity>
                   </Link>
-                  <Link href="/access" asChild>
+                  <Link
+                    href={{ pathname: "/login", params: { audience: "student" } }}
+                    asChild
+                  >
                     <TouchableOpacity
                       style={styles.buyNowButton}
                       accessibilityRole="button"

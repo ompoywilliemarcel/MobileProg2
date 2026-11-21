@@ -4,7 +4,6 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 const accountTypes = [
   { audience: "student", label: "Student" },
-  { audience: "store", label: "Display Center Admin" },
 ];
 
 export default function AccessScreen() {
@@ -24,11 +23,15 @@ export default function AccessScreen() {
         <Text style={styles.backButtonText}>‹ Back to products</Text>
       </TouchableOpacity>
       <View style={styles.content}>
-        <Text style={styles.title}>{isSignup ? "Create a student account" : "Choose your account type"}</Text>
+        <Text style={styles.title}>
+          {isSignup
+            ? "Create a student account"
+            : "Continue as a student"}
+        </Text>
         <Text style={styles.subtitle}>
           {isSignup
             ? "Student accounts are open for registration. Display Center Admin accounts are managed separately."
-            : "Select the account you want to sign in to."}
+            : "Sign in to add products to your cart and place orders."}
         </Text>
         <View style={styles.options}>
           {(isSignup ? accountTypes.filter((account) => account.audience === "student") : accountTypes).map((account) => (
