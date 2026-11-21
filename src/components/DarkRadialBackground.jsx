@@ -1,11 +1,11 @@
-import { StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from "react-native";
 
 const circles = [
-  { size: 520, color: '#0A2137' },
-  { size: 420, color: '#0C263E' },
-  { size: 320, color: '#0F2B45' },
-  { size: 220, color: '#12314B' },
-  { size: 120, color: '#153650' },
+  { size: 520, color: "#0A2137" },
+  { size: 420, color: "#0C263E" },
+  { size: 320, color: "#0F2B45" },
+  { size: 220, color: "#12314B" },
+  { size: 120, color: "#153650" },
 ];
 
 export default function DarkRadialBackground() {
@@ -35,25 +35,25 @@ export default function DarkRadialBackground() {
 const styles = StyleSheet.create({
   background: {
     ...StyleSheet.absoluteFillObject,
-    overflow: 'hidden',
+    overflow: "hidden",
   },
   glow: {
-    alignItems: 'center',
+    alignItems: "center",
     height: 520,
     left: 0,
-    position: 'absolute',
+    position: "absolute",
     right: 0,
     top: -90,
   },
   circle: {
-    position: 'absolute',
+    position: "absolute",
     top: 0,
   },
   goldGlow: {
-    backgroundColor: 'rgba(217,180,91,0.08)',
+    backgroundColor: "rgba(217,180,91,0.08)",
     borderRadius: 120,
     height: 240,
-    position: 'absolute',
+    position: "absolute",
     right: -100,
     top: 300,
     width: 240,

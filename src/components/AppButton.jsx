@@ -1,4 +1,4 @@
-import { StyleSheet, Text, TouchableOpacity } from 'react-native';
+import { StyleSheet, Text, TouchableOpacity } from "react-native";
 
 export default function AppButton({ title, onPress, disabled = false, style }) {
   return (
@@ -16,19 +16,19 @@ export default function AppButton({ title, onPress, disabled = false, style }) {
 
 const styles = StyleSheet.create({
   button: {
-    alignItems: 'center',
-    backgroundColor: '#0284C7',
+    alignItems: "center",
+    backgroundColor: "#0284C7",
     borderRadius: 14,
-    justifyContent: 'center',
+    justifyContent: "center",
     paddingVertical: 16,
   },
   disabledButton: {
-    backgroundColor: '#94A3B8',
+    backgroundColor: "#94A3B8",
     opacity: 0.65,
   },
   title: {
-    color: '#FFFFFF',
+    color: "#FFFFFF",
     fontSize: 16,
-    fontWeight: '700',
+    fontWeight: "700",
   },
 });

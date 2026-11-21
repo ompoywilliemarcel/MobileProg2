@@ -11,7 +11,6 @@ import { SafeAreaView } from "react-native-safe-area-context";
 export default function TermsScreen() {
   return (
     <SafeAreaView style={styles.safeArea}>
-
       <ScrollView contentContainerStyle={styles.content}>
         <View style={styles.headerRow}>
           <Text style={styles.brand}>Merch Store</Text>

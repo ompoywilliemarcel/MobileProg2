@@ -11,13 +11,18 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { demoAccounts, isEmailDeleted, loadSavedAccounts, saveCreatedAccount, store } from "../data/demoStore";
+import {
+  demoAccounts,
+  isEmailDeleted,
+  loadSavedAccounts,
+  saveCreatedAccount,
+  store,
+} from "../data/demoStore";
 
 export default function SignupScreen() {
   const router = useRouter();
   const { audience: requestedAudience } = useLocalSearchParams();
-  const audience = requestedAudience === "store" ? "store" : "student";
-  const isStore = audience === "store";
+  const audience = "student";
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [idNumber, setIdNumber] = useState("");
@@ -28,9 +33,12 @@ export default function SignupScreen() {
   const [errorMessage, setErrorMessage] = useState("");
 
   useEffect(() => {
+    if (requestedAudience === "store") {
+      router.replace({ pathname: "/login", params: { audience: "store" } });
+    }
     setIdNumber("");
     setErrorMessage("");
-  }, [audience]);
+  }, [audience, requestedAudience, router]);
 
   const handleCreateAccount = async () => {
     if (!fullName || !email || !password || !confirmPassword) {
@@ -43,14 +51,10 @@ export default function SignupScreen() {
       return;
     }
 
-    const validId = isStore
-      ? /^32\d{5}$/.test(idNumber.trim())
-      : /^202\d{7}$/.test(idNumber.trim());
+    const validId = /^202\d{7}$/.test(idNumber.trim());
     if (!validId) {
       setErrorMessage(
-        isStore
-          ? "Incomplete ID number. Enter 32 followed by 5 digits."
-          : "Incomplete ID number. Enter 202 followed by 7 digits.",
+        "Incomplete ID number. Enter 202 followed by 7 digits.",
       );
       return;
     }
@@ -64,7 +68,9 @@ export default function SignupScreen() {
 
     const normalizedEmail = email.trim().toLowerCase();
     if (await isEmailDeleted(normalizedEmail)) {
-      setErrorMessage("This email belongs to a deleted account and cannot be reused.");
+      setErrorMessage(
+        "This email belongs to a deleted account and cannot be reused.",
+      );
       return;
     }
     if (
@@ -76,7 +82,7 @@ export default function SignupScreen() {
       return;
     }
 
-    const role = isStore ? "user" : "customer";
+    const role = "customer";
     const account = {
       email: normalizedEmail,
       password,
@@ -130,26 +136,11 @@ export default function SignupScreen() {
               <Text style={styles.badgeText}>Fresh arrivals</Text>
             </View>
             <Text style={styles.title}>
-              Create {isStore ? "admin" : "student"} account
+              Create student account
             </Text>
             <Text style={styles.subtitle}>
-              {isStore
-                ? "Set up your Display Center Admin access."
-                : "Join and shop your favorite campus merch."}
+              Join and shop your favorite campus merch.
             </Text>
-          </View>
-
-          <View style={styles.accountTypePicker}>
-            <Text style={styles.accountTypeLabel}>ACCOUNT TYPE</Text>
-            <View style={styles.accountTypeOptions}>
-              {[{ key: "student", label: "Student" }, { key: "store", label: "Display Center Admin" }].map((option) => (
-                <Link key={option.key} href={{ pathname: "/signup", params: { audience: option.key } }} asChild>
-                  <TouchableOpacity style={StyleSheet.flatten([styles.accountTypeOption, audience === option.key && styles.accountTypeOptionActive])} accessibilityRole="button" accessibilityState={{ selected: audience === option.key }}>
-                    <Text style={[styles.accountTypeOptionText, audience === option.key && styles.accountTypeOptionTextActive]}>{option.label}</Text>
-                  </TouchableOpacity>
-                </Link>
-              ))}
-            </View>
           </View>
 
           <View style={styles.formCard}>
@@ -175,18 +166,18 @@ export default function SignupScreen() {
             />
 
             <Text style={styles.label}>
-              {isStore ? "USTP Store ID" : "Student ID"}
+              Student ID
             </Text>
             <TextInput
               style={styles.input}
-              placeholder={isStore ? "32_ _ _ _ _ " : "202_ _ _ _ _ _ _"}
+              placeholder="202_ _ _ _ _ _ _"
               placeholderTextColor="#8B8CA7"
               value={idNumber}
               onChangeText={(value) =>
-                setIdNumber(value.replace(/\D/g, "").slice(0, isStore ? 7 : 10))
+                setIdNumber(value.replace(/\D/g, "").slice(0, 10))
               }
               keyboardType="number-pad"
-              maxLength={isStore ? 7 : 10}
+              maxLength={10}
             />
 
             <Text style={styles.label}>Password</Text>
@@ -267,7 +258,6 @@ export default function SignupScreen() {
             >
               <Text style={styles.primaryButtonText}>Create account</Text>
             </TouchableOpacity>
-
           </View>
 
           <Text style={styles.signupText}>
@@ -322,9 +312,26 @@ const styles = StyleSheet.create({
     fontWeight: "600",
   },
   accountTypePicker: { marginTop: -6, marginBottom: 16 },
-  accountTypeLabel: { color: "#647386", fontSize: 10, fontWeight: "800", letterSpacing: 1, marginBottom: 8 },
-  accountTypeOptions: { flexDirection: "row", padding: 4, backgroundColor: "#E9ECEE", borderRadius: 13, gap: 5 },
-  accountTypeOption: { flex: 1, alignItems: "center", paddingVertical: 11, borderRadius: 10 },
+  accountTypeLabel: {
+    color: "#647386",
+    fontSize: 10,
+    fontWeight: "800",
+    letterSpacing: 1,
+    marginBottom: 8,
+  },
+  accountTypeOptions: {
+    flexDirection: "row",
+    padding: 4,
+    backgroundColor: "#E9ECEE",
+    borderRadius: 13,
+    gap: 5,
+  },
+  accountTypeOption: {
+    flex: 1,
+    alignItems: "center",
+    paddingVertical: 11,
+    borderRadius: 10,
+  },
   accountTypeOptionActive: { backgroundColor: "#173B5B" },
   accountTypeOptionText: { color: "#536476", fontSize: 12, fontWeight: "700" },
   accountTypeOptionTextActive: { color: "#FFFFFF" },

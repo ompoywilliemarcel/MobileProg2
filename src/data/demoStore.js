@@ -77,6 +77,9 @@ export const loadSavedAccounts = async () => {
 };
 
 export const saveCreatedAccount = async (account) => {
+  if (account?.role !== "customer" || account?.audience !== "student") {
+    throw new Error("Only student accounts can be created through registration.");
+  }
   await loadSavedAccounts();
   account.joined = new Date().toLocaleDateString("en-PH", {
     month: "short",

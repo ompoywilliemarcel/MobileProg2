@@ -12,7 +12,14 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { demoAccounts, isAccountDisabled, loadSavedAccounts, recordActivity, setAuthenticatedAccount, store } from "../data/demoStore";
+import {
+  demoAccounts,
+  isAccountDisabled,
+  loadSavedAccounts,
+  recordActivity,
+  setAuthenticatedAccount,
+  store,
+} from "../data/demoStore";
 
 export default function LoginScreen() {
   const router = useRouter();
@@ -55,7 +62,9 @@ export default function LoginScreen() {
       return;
     }
     if (account.id !== idNumber.trim()) {
-      setFieldErrors({ idNumber: isStore ? "Incorrect Admin ID." : "Incorrect student number." });
+      setFieldErrors({
+        idNumber: isStore ? "Incorrect Admin ID." : "Incorrect student number.",
+      });
       return;
     }
     if (account.password !== password) {
@@ -63,14 +72,23 @@ export default function LoginScreen() {
       return;
     }
     if (await isAccountDisabled(account.email)) {
-      setFieldErrors({ email: "This account is disabled. Contact the administrator." });
+      setFieldErrors({
+        email: "This account is disabled. Contact the administrator.",
+      });
       return;
     }
     await setAuthenticatedAccount(account.email);
     if (account.role === "customer") store.currentStudentId = account.id;
-    await recordActivity("User Login", account.name, "Logged into the application.");
+    await recordActivity(
+      "User Login",
+      account.name,
+      "Logged into the application.",
+    );
     router.replace({
-      pathname: account.role === "customer" ? "/student/dashboard" : "/store-owner/dashboard",
+      pathname:
+        account.role === "customer"
+          ? "/student/dashboard"
+          : "/store-owner/dashboard",
       params: { role: account.role, name: account.name, id: account.id },
     });
   };
@@ -108,13 +126,20 @@ export default function LoginScreen() {
               placeholderTextColor="#8290A0"
               value={idNumber}
               onChangeText={(value) => {
-                setIdNumber(value.replace(/\D/g, "").slice(0, isStore ? 7 : 10));
-                setFieldErrors((current) => ({ ...current, idNumber: undefined }));
+                setIdNumber(
+                  value.replace(/\D/g, "").slice(0, isStore ? 7 : 10),
+                );
+                setFieldErrors((current) => ({
+                  ...current,
+                  idNumber: undefined,
+                }));
               }}
               keyboardType="number-pad"
               maxLength={isStore ? 7 : 10}
             />
-            {fieldErrors.idNumber ? <Text style={styles.fieldError}>{fieldErrors.idNumber}</Text> : null}
+            {fieldErrors.idNumber ? (
+              <Text style={styles.fieldError}>{fieldErrors.idNumber}</Text>
+            ) : null}
             <Text style={styles.label}>Username or email</Text>
             <TextInput
               style={styles.input}
@@ -128,7 +153,9 @@ export default function LoginScreen() {
               autoCapitalize="none"
               autoComplete="username"
             />
-            {fieldErrors.email ? <Text style={styles.fieldError}>{fieldErrors.email}</Text> : null}
+            {fieldErrors.email ? (
+              <Text style={styles.fieldError}>{fieldErrors.email}</Text>
+            ) : null}
             <Text style={styles.label}>Password</Text>
             <TextInput
               style={styles.input}
@@ -137,27 +164,37 @@ export default function LoginScreen() {
               value={password}
               onChangeText={(value) => {
                 setPassword(value);
-                setFieldErrors((current) => ({ ...current, password: undefined }));
+                setFieldErrors((current) => ({
+                  ...current,
+                  password: undefined,
+                }));
               }}
               secureTextEntry
               autoComplete="password"
             />
-            {fieldErrors.password ? <Text style={styles.fieldError}>{fieldErrors.password}</Text> : null}
+            {fieldErrors.password ? (
+              <Text style={styles.fieldError}>{fieldErrors.password}</Text>
+            ) : null}
             <TouchableOpacity style={styles.button} onPress={handleLogin}>
               <Text style={styles.buttonText}>Continue</Text>
             </TouchableOpacity>
           </View>
-          <Text style={styles.signup}>
-            New here?{" "}
-            <Link
-              href={{ pathname: "/signup", params: { audience } }}
-              style={styles.link}
-            >
-              Create an account
-            </Link>
-          </Text>
+          {!isStore && (
+            <Text style={styles.signup}>
+              New here?{" "}
+              <Link
+                href={{ pathname: "/signup", params: { audience: "student" } }}
+                style={styles.link}
+              >
+                Create an account
+              </Link>
+            </Text>
+          )}
           <Link
-            href={{ pathname: "/login", params: { audience: isStore ? "student" : "store" } }}
+            href={{
+              pathname: "/login",
+              params: { audience: isStore ? "student" : "store" },
+            }}
             style={[styles.link, styles.accountSwitch]}
           >
             {isStore ? "Login as Student" : "Log as Admin"}
@@ -222,7 +259,14 @@ const styles = StyleSheet.create({
     color: "#0B1F33",
     fontSize: 15,
   },
-  fieldError: { color: "#C62828", fontSize: 12, lineHeight: 17, marginTop: 4, marginBottom: 10, fontWeight: "600" },
+  fieldError: {
+    color: "#C62828",
+    fontSize: 12,
+    lineHeight: 17,
+    marginTop: 4,
+    marginBottom: 10,
+    fontWeight: "600",
+  },
   button: {
     backgroundColor: "#D9B45B",
     borderRadius: 13,
