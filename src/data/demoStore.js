@@ -4,6 +4,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 const CREATED_ACCOUNTS_KEY = "ustp-wear.created-accounts";
 const ADMIN_DATA_KEY = "ustp-wear.admin-data";
 const PASSWORD_OVERRIDES_KEY = "ustp-wear.password-overrides";
+const PRODUCT_INVENTORY_KEY = "ustp-wear.product-inventory";
 let accountsHydrated = false;
 let hydrationPromise;
 let createdAccounts = [];
@@ -45,6 +46,7 @@ export const loadSavedAccounts = async () => {
       const savedAccounts = await AsyncStorage.getItem(CREATED_ACCOUNTS_KEY);
       const savedAdminData = await AsyncStorage.getItem(ADMIN_DATA_KEY);
       const savedPasswordOverrides = await AsyncStorage.getItem(PASSWORD_OVERRIDES_KEY);
+      const savedInventory = await AsyncStorage.getItem(PRODUCT_INVENTORY_KEY);
       if (savedPasswordOverrides) {
         const parsedOverrides = JSON.parse(savedPasswordOverrides);
         if (parsedOverrides && typeof parsedOverrides === "object") {
@@ -79,6 +81,19 @@ export const loadSavedAccounts = async () => {
       for (const account of demoAccounts) {
         const override = passwordOverrides[account.email.toLowerCase()];
         if (typeof override === "string") account.password = override;
+      }
+      if (savedInventory) {
+        const parsedInventory = JSON.parse(savedInventory);
+        if (Array.isArray(parsedInventory)) {
+          for (const savedProduct of parsedInventory) {
+            const product = store.products.find(
+              (item) => String(item.id) === String(savedProduct?.id),
+            );
+            if (product && savedProduct.stock && typeof savedProduct.stock === "object") {
+              product.stock = savedProduct.stock;
+            }
+          }
+        }
       }
       accountsHydrated = true;
     })().catch((error) => {
@@ -307,6 +322,15 @@ export const store = {
   reservations: [],
 };
 
+export const saveProductInventory = async () => {
+  await AsyncStorage.setItem(
+    PRODUCT_INVENTORY_KEY,
+    JSON.stringify(
+      store.products.map((product) => ({ id: product.id, stock: product.stock })),
+    ),
+  );
+};
+
 export const money = (amount) => `\u20B1${Number(amount).toLocaleString("en-PH")}`;
 export const productAmount = (product) =>
   Number(String(product.price).replace(/[^0-9.]/g, "")) || 0;
@@ -315,6 +339,18 @@ export const getProductStock = (product, size) => {
   const inventory = store.products.find((item) => item.id === product?.id) || product;
   if (!inventory?.stock) return 0;
   return inventory.stock.quantity ?? inventory.stock[size] ?? 0;
+};
+
+export const getStockStatus = (quantity) => {
+  const count = Number(quantity) || 0;
+  if (count <= 0) return "out";
+  if (count <= 10) return "low";
+  return "high";
+};
+
+export const getStockStatusLabel = (quantity) => {
+  const status = getStockStatus(quantity);
+  return status === "out" ? "Out of stock" : status === "low" ? "Low stock" : "High stock";
 };
 
 export const deductOrderStock = (items) => {

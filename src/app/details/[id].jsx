@@ -10,8 +10,38 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { getProductStock, store } from "../../data/demoStore";
+import {
+  getProductStock,
+  getStockStatus,
+  getStockStatusLabel,
+  store,
+} from "../../data/demoStore";
 import { products as catalogProducts } from "../../data/products";
+
+const stockColors = {
+  high: "#00B96B",
+  low: "#FF8A45",
+  out: "#FF3636",
+};
+
+function StockLegend() {
+  return (
+    <View style={styles.stockLegend}>
+      {[
+        ["high", "High stock"],
+        ["low", "Low stock"],
+        ["out", "Out of stock"],
+      ].map(([status, label]) => (
+        <View key={status} style={styles.stockLegendItem}>
+          <View
+            style={[styles.stockDot, { backgroundColor: stockColors[status] }]}
+          />
+          <Text style={styles.stockLegendText}>{label}</Text>
+        </View>
+      ))}
+    </View>
+  );
+}
 
 export default function ProductDetailsScreen() {
   const { id, audience, name } = useLocalSearchParams();
@@ -118,47 +148,59 @@ export default function ProductDetailsScreen() {
                     <View style={styles.sizeSection}>
                       <Text style={styles.sectionLabel}>Choose a size</Text>
                       <View style={styles.sizeRow}>
-                        {sizes.map((size) => (
-                          <TouchableOpacity
-                            key={size}
-                            disabled={getProductStock(product, size) <= 0}
-                            onPress={() => setSelectedSize(size)}
-                            style={[
-                              styles.sizeChip,
-                              getProductStock(product, size) > 0 &&
-                                getProductStock(product, size) <= 10 &&
-                                styles.sizeChipLow,
-                              getProductStock(product, size) <= 0 &&
-                                styles.sizeChipOut,
-                              selectedSize === size &&
-                                getProductStock(product, size) > 0 &&
-                                styles.sizeChipSelected,
-                            ]}
-                            accessibilityRole="button"
-                            accessibilityState={{
-                              selected: selectedSize === size,
-                            }}
-                          >
-                            <Text
+                        {sizes.map((size) => {
+                          const quantity = getProductStock(product, size);
+                          const status = getStockStatus(quantity);
+                          return (
+                            <TouchableOpacity
+                              key={size}
+                              disabled={status === "out"}
+                              onPress={() => setSelectedSize(size)}
                               style={[
-                                styles.sizeText,
-                                (getProductStock(product, size) <= 0 ||
-                                  (getProductStock(product, size) > 0 &&
-                                    getProductStock(product, size) <= 10)) &&
-                                  styles.sizeTextMuted,
-                                selectedSize === size &&
-                                  getProductStock(product, size) > 0 &&
-                                  styles.sizeTextSelected,
+                                styles.sizeChip,
+                                selectedSize === size && styles.sizeChipSelected,
                               ]}
+                              accessibilityRole="button"
+                              accessibilityState={{
+                                selected: selectedSize === size,
+                                disabled: status === "out",
+                              }}
                             >
-                              {size}
-                            </Text>
-                          </TouchableOpacity>
-                        ))}
+                              <View
+                                style={[
+                                  styles.stockDot,
+                                  { backgroundColor: stockColors[status] },
+                                ]}
+                              />
+                              <Text
+                                style={[
+                                  styles.sizeText,
+                                  selectedSize === size && styles.sizeTextSelected,
+                                ]}
+                              >
+                                {size}
+                              </Text>
+                            </TouchableOpacity>
+                          );
+                        })}
                       </View>
-                      <Text style={styles.stockHint}>
-                        Gray: low stock (10 or fewer) · Red: out of stock
+                      <Text style={styles.selectedStock}>
+                        {selectedSize
+                          ? `${selectedSize}: ${getStockStatusLabel(
+                              getProductStock(product, selectedSize),
+                            )} · ${getProductStock(product, selectedSize)} available`
+                          : "Choose a size to view availability."}
                       </Text>
+                      <StockLegend />
+                    </View>
+                  )}
+                  {!hasSizes && (
+                    <View style={styles.sizeSection}>
+                      <Text style={styles.sectionLabel}>Availability</Text>
+                      <Text style={styles.selectedStock}>
+                        {getStockStatusLabel(getProductStock(product))} · {getProductStock(product)} available
+                      </Text>
+                      <StockLegend />
                     </View>
                   )}
                   <Text style={styles.sku}>
@@ -389,6 +431,8 @@ const styles = StyleSheet.create({
   sizeRow: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
   sizeChip: {
     alignItems: "center",
+    flexDirection: "row",
+    gap: 7,
     backgroundColor: "#F8F7F2",
     borderColor: "#DDD8C9",
     borderRadius: 9,
@@ -400,10 +444,11 @@ const styles = StyleSheet.create({
   sizeChipSelected: { backgroundColor: "#E5BD55", borderColor: "#E5BD55" },
   sizeText: { color: "#263246", fontSize: 13, fontWeight: "700" },
   sizeTextSelected: { color: "#18243A" },
-  sizeChipLow: { backgroundColor: "#E5E7EB", borderColor: "#B9BEC6" },
-  sizeChipOut: { backgroundColor: "#FCE3E3", borderColor: "#D94848" },
-  sizeTextMuted: { color: "#777D86" },
-  stockHint: { color: "#777D86", fontSize: 11, marginTop: 8 },
+  stockDot: { width: 9, height: 9, borderRadius: 5 },
+  selectedStock: { color: "#45566A", fontSize: 12, fontWeight: "700", marginTop: 12 },
+  stockLegend: { flexDirection: "row", flexWrap: "wrap", gap: 14, marginTop: 12 },
+  stockLegendItem: { alignItems: "center", flexDirection: "row", gap: 6 },
+  stockLegendText: { color: "#59616C", fontSize: 12, fontStyle: "italic" },
   buttonDisabled: { opacity: 0.45 },
   sku: {
     color: "#777D86",

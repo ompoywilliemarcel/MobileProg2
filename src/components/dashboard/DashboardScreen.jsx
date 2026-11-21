@@ -23,6 +23,8 @@ import {
   money,
   productAmount,
   recordActivity,
+  getStockStatus,
+  saveProductInventory,
   store,
 } from "../../data/demoStore";
 
@@ -148,6 +150,7 @@ export default function DashboardScreen({
   const [newHasSizes, setNewHasSizes] = useState(false);
   const [editingProductId, setEditingProductId] = useState(null);
   const [productDraft, setProductDraft] = useState(null);
+  const [productSaveError, setProductSaveError] = useState("");
   const [period, setPeriod] = useState("Month");
   const [reportDate, setReportDate] = useState(() => new Date());
   const [calendarDate, setCalendarDate] = useState(() => new Date());
@@ -266,6 +269,9 @@ export default function DashboardScreen({
       description: newDescription.trim(),
       hasSizes: newHasSizes,
       sizes: newHasSizes ? sizes : [],
+      stock: newHasSizes
+        ? Object.fromEntries(sizes.map((size) => [size, 100]))
+        : { quantity: 500 },
       color: "#183653",
       image: newImage || require("../../../assets/products/lanyard.jpg"),
     };
@@ -289,6 +295,7 @@ export default function DashboardScreen({
               name,
               `Added product ${product.name}.`,
             )
+              .then(saveProductInventory)
               .then(refreshAdminData)
               .catch(() => {});
             resetNewProduct();
@@ -304,20 +311,25 @@ export default function DashboardScreen({
     );
   };
   const startProductEdit = (product) => {
+    const hasSizes = product.hasSizes ?? !/lanyard/i.test(product.name);
+    const sizes =
+      product.sizes ||
+      (hasSizes ? ["S", "M", "L", "XL"] : []);
     setEditingProductId(product.id);
+    setProductSaveError("");
     setProductDraft({
       name: product.name,
       price: String(product.price).replace(/[^0-9.]/g, ""),
       category: product.category || "Campus merch",
       description: product.description || "",
       image: product.image,
-      hasSizes: product.hasSizes ?? !/lanyard/i.test(product.name),
-      sizes: (
-        product.sizes ||
-        (product.hasSizes === false || /lanyard/i.test(product.name)
-          ? []
-          : ["S", "M", "L", "XL"])
-      ).join(", "),
+      hasSizes,
+      sizes: sizes.join(", "),
+      stock: hasSizes
+        ? Object.fromEntries(
+            sizes.map((size) => [size, product.stock?.[size] ?? 100]),
+          )
+        : { quantity: product.stock?.quantity ?? 500 },
     });
   };
   const saveProductEdit = (product) => {
@@ -327,11 +339,12 @@ export default function DashboardScreen({
       !productDraft.name.trim() ||
       !amount ||
       (productDraft.hasSizes && sizes.length === 0)
-    )
-      return Alert.alert(
-        "Product details needed",
+    ) {
+      setProductSaveError(
         "Enter a name, valid price, and at least one size when size options are enabled.",
       );
+      return;
+    }
     const updated = {
       ...product,
       name: productDraft.name.trim(),
@@ -341,38 +354,31 @@ export default function DashboardScreen({
       image: productDraft.image,
       hasSizes: productDraft.hasSizes,
       sizes: productDraft.hasSizes ? sizes : [],
+      stock: productDraft.hasSizes
+        ? Object.fromEntries(
+            sizes.map((size) => [size, Number(productDraft.stock?.[size]) || 0]),
+          )
+        : { quantity: Number(productDraft.stock?.quantity) || 0 },
     };
-    const productSummary = [
-      `Name: ${updated.name}`,
-      `Category: ${updated.category}`,
-      `Price: ${updated.price}`,
-      `Sizes: ${updated.hasSizes ? updated.sizes.join(", ") : "Not applicable"}`,
-      `Details: ${updated.description || "None provided"}`,
-    ].join("\n");
-    Alert.alert(
-      "Save product changes?",
-      `Review the updated product details:\n\n${productSummary}`,
-      [
-        { text: "Keep editing", style: "cancel" },
-        {
-          text: "Save changes",
-          onPress: () => {
-            Object.assign(product, updated);
-            recordActivity(
-              "Product Change",
-              name,
-              `Updated product ${updated.name}.`,
-            )
-              .then(refreshAdminData)
-              .catch(() => {});
-            setEditingProductId(null);
-            setProductDraft(null);
-            bump();
-            Alert.alert("Product updated", `${updated.name} has been updated.`);
-          },
-        },
-      ],
-    );
+    Object.assign(product, updated);
+    setProductSaveError("");
+    saveProductInventory()
+      .then(() =>
+        recordActivity(
+          "Product Change",
+          name,
+          `Updated product ${updated.name}.`,
+        ).catch(() => {}),
+      )
+      .then(() => {
+        setEditingProductId(null);
+        setProductDraft(null);
+        bump();
+        refreshAdminData();
+      })
+      .catch(() => {
+        setProductSaveError("Couldn't save inventory. Please try again.");
+      });
   };
   const removeProduct = (product) => {
     Alert.alert(
@@ -511,18 +517,9 @@ export default function DashboardScreen({
     setCart(nextCart);
   };
   const signOut = () => {
-    Alert.alert("Log out?", "Are you sure you want to log out?", [
-      { text: "Cancel", style: "cancel" },
-      {
-        text: "Log out",
-        style: "destructive",
-        onPress: () => {
-          clearAuthenticatedAccount();
-          store.currentStudentId = null;
-          router.replace("/");
-        },
-      },
-    ]);
+    clearAuthenticatedAccount();
+    store.currentStudentId = null;
+    router.replace("/");
   };
   const toggleStoreStatus = () => {
     store.isOnline = !store.isOnline;
@@ -878,6 +875,115 @@ export default function DashboardScreen({
                           placeholderTextColor="#8995A2"
                         />
                       )}
+                      <Text style={styles.fieldLabel}>Inventory stock</Text>
+                      <Text style={styles.inventoryHelp}>
+                        Set quantity for each size. Status is based on the quantity.
+                      </Text>
+                      {productDraft.hasSizes
+                        ? parseSizes(productDraft.sizes).map((size) => {
+                            const count = Number(productDraft.stock?.[size]) || 0;
+                            const status = getStockStatus(count);
+                            return (
+                              <View key={size} style={styles.inventoryRow}>
+                                <Text style={styles.inventorySize}>{size}</Text>
+                                <TextInput
+                                  style={styles.inventoryInput}
+                                  value={String(productDraft.stock?.[size] ?? 0)}
+                                  onChangeText={(value) =>
+                                    setProductDraft({
+                                      ...productDraft,
+                                      stock: {
+                                        ...productDraft.stock,
+                                        [size]: value.replace(/\D/g, ""),
+                                      },
+                                    })
+                                  }
+                                  keyboardType="number-pad"
+                                  accessibilityLabel={`${size} stock quantity`}
+                                />
+                                <View style={styles.inventoryStatus}>
+                                  <View
+                                    style={[
+                                      styles.stockDot,
+                                      status === "high"
+                                        ? styles.stockDotHigh
+                                        : status === "low"
+                                          ? styles.stockDotLow
+                                          : styles.stockDotOut,
+                                    ]}
+                                  />
+                                  <Text
+                                    style={[
+                                      styles.inventoryStatusText,
+                                      status === "high"
+                                        ? styles.stockTextHigh
+                                        : status === "low"
+                                          ? styles.stockTextLow
+                                          : styles.stockTextOut,
+                                    ]}
+                                  >
+                                    {status === "out"
+                                      ? "Out of stock"
+                                      : status === "low"
+                                        ? "Low stock"
+                                        : "High stock"}
+                                  </Text>
+                                </View>
+                              </View>
+                            );
+                          })
+                        : (() => {
+                            const count = Number(productDraft.stock?.quantity) || 0;
+                            const status = getStockStatus(count);
+                            return (
+                              <View style={styles.inventoryRow}>
+                                <Text style={styles.inventorySize}>Item</Text>
+                                <TextInput
+                                  style={styles.inventoryInput}
+                                  value={String(productDraft.stock?.quantity ?? 0)}
+                                  onChangeText={(value) =>
+                                    setProductDraft({
+                                      ...productDraft,
+                                      stock: {
+                                        ...productDraft.stock,
+                                        quantity: value.replace(/\D/g, ""),
+                                      },
+                                    })
+                                  }
+                                  keyboardType="number-pad"
+                                  accessibilityLabel="Item stock quantity"
+                                />
+                                <View style={styles.inventoryStatus}>
+                                  <View
+                                    style={[
+                                      styles.stockDot,
+                                      status === "high"
+                                        ? styles.stockDotHigh
+                                        : status === "low"
+                                          ? styles.stockDotLow
+                                          : styles.stockDotOut,
+                                    ]}
+                                  />
+                                  <Text
+                                    style={[
+                                      styles.inventoryStatusText,
+                                      status === "high"
+                                        ? styles.stockTextHigh
+                                        : status === "low"
+                                          ? styles.stockTextLow
+                                          : styles.stockTextOut,
+                                    ]}
+                                  >
+                                    {status === "out"
+                                      ? "Out of stock"
+                                      : status === "low"
+                                        ? "Low stock"
+                                        : "High stock"}
+                                  </Text>
+                                </View>
+                              </View>
+                            );
+                          })()}
                       <Text style={styles.fieldLabel}>Product details</Text>
                       <TextInput
                         style={[styles.input, styles.descriptionInput]}
@@ -893,6 +999,11 @@ export default function DashboardScreen({
                         multiline
                         textAlignVertical="top"
                       />
+                      {productSaveError ? (
+                        <Text style={styles.productSaveError}>
+                          {productSaveError}
+                        </Text>
+                      ) : null}
                       <Action
                         title="Save changes"
                         onPress={() => saveProductEdit(p)}
@@ -2679,6 +2790,40 @@ const styles = StyleSheet.create({
     marginTop: 5,
     marginBottom: 5,
   },
+  inventoryHelp: { color: "#68798A", fontSize: 11, marginBottom: 8 },
+  productSaveError: {
+    color: "#C62828",
+    fontSize: 12,
+    fontWeight: "700",
+    marginBottom: 8,
+  },
+  inventoryRow: {
+    alignItems: "center",
+    flexDirection: "row",
+    gap: 10,
+    marginBottom: 8,
+  },
+  inventorySize: { color: "#33465A", fontSize: 12, fontWeight: "800", width: 36 },
+  inventoryInput: {
+    backgroundColor: "#F8F7F2",
+    borderColor: "#D8D2C5",
+    borderRadius: 9,
+    borderWidth: 1,
+    color: "#0B1F33",
+    minWidth: 60,
+    paddingHorizontal: 10,
+    paddingVertical: 7,
+    textAlign: "center",
+  },
+  inventoryStatus: { alignItems: "center", flexDirection: "row", gap: 6 },
+  stockDot: { borderRadius: 5, height: 9, width: 9 },
+  stockDotHigh: { backgroundColor: "#00B96B" },
+  stockDotLow: { backgroundColor: "#FF8A45" },
+  stockDotOut: { backgroundColor: "#FF3636" },
+  inventoryStatusText: { fontSize: 11, fontStyle: "italic", fontWeight: "600" },
+  stockTextHigh: { color: "#16804E" },
+  stockTextLow: { color: "#D66B28" },
+  stockTextOut: { color: "#D52E2E" },
   fieldHeading: {
     flexDirection: "row",
     alignItems: "center",
